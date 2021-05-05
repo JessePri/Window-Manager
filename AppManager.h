@@ -52,11 +52,18 @@ private:
 
 	static Application::WinMap windowedApps;
 	static std::vector<Profile> profiles;
+	static MONITORINFO monitorInfo;
 
 public:
 
-	// Initialisers
+	// Initializer
 
+	//static void LoadEnviroment();
+
+	// Initialiser Helpers
+
+
+	
 	static void GetAllWindowedApplications();
 	static BOOL CALLBACK WindowConstructor(_In_ HWND hwnd, LPARAM IGNORED);
 
@@ -90,5 +97,8 @@ public:
 	static void PrintSizeOfWindowedApps();
 
 	static void PrintProfiles();
+
+	// Only single monitor for now
+	static void FindMonitor()
 };
 
