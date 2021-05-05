@@ -15,6 +15,7 @@ using std::getline;
 using std::stoi;
 using std::wcout;
 using std::endl;
+using std::to_wstring;
 
 
 vector<AppManager::Profile> AppManager::profiles;
@@ -67,6 +68,15 @@ AppManager::Profile::Profile(wifstream& input, bool constrained) {
 	ReadProfileConstrained(input);
 }
 
+/* You wrote this wrong...
+*	- You are not reading the complete data set into this
+*		1. Per App window move you are reading 8 THINGS (not 6)
+*		2. You are computing the move instruction not making it
+*		4. Before this you need this application to find 
+*			the size of the screen
+*		5. After you do the above you need to write the ToString
+*			and Print methods
+*/
 void AppManager::Profile::ReadProfileConstrained(wifstream& input) {
 	wstring temp;
 	unsigned char count = 0;
@@ -120,6 +130,7 @@ void AppManager::PrintWindowedApps() {
 	for (auto& p : windowedApps) {
 		for (auto& a : p.second) {
 			wcout << L"/////////////////////////////////////////////" << endl;
+			wcout << "HWND: " << a.GetHWND() << endl;
 			wcout << a.ToString() << endl;
 			wcout << L"/////////////////////////////////////////////" << endl;
 		}
@@ -128,4 +139,32 @@ void AppManager::PrintWindowedApps() {
 
 void AppManager::PrintSizeOfWindowedApps() {
 	wcout << windowedApps.size() << endl;
+}
+
+wstring AppManager::Profile::MoveInstruction::ToString() {
+	wstring toReturn = filePath;
+	toReturn += L"App Index: " + to_wstring(appIndex);
+	toReturn += L"x: " + to_wstring(x) + L"\n";
+	toReturn += L"y: " + to_wstring(x) + L"\n";
+	toReturn += L"cx: " + to_wstring(cx) + L"\n";
+	toReturn += L"cy: " + to_wstring(cy) + L"\n";
+	return toReturn;
+}
+
+wstring AppManager::Profile::ToString() {
+	wstring toReturn = L"";
+	for (MoveInstruction instruction : instructions) {
+		toReturn += L"-----------------------------------------\n";
+		toReturn += instruction.ToString();
+		toReturn += L"-----------------------------------------\n";
+	}
+	return toReturn;
+}
+
+void AppManager::PrintProfiles() {
+	for (Profile profile : profiles) {
+		wcout << "#############################################" << endl;
+		wcout << profile.ToString() << endl;
+		wcout << "#############################################" << endl;
+	}
 }

@@ -38,11 +38,13 @@ private:
 				cx = ccx;
 				cy = ccy;
 			}
+			std::wstring ToString();
 		};
 
 		std::vector<MoveInstruction> instructions;
 		Profile() = delete;
 		Profile(std::wifstream& constrainedFile, bool constrained);
+		std::wstring ToString();
 		//ReadProfileAdvanced(std::ifstream& constrainedFile);
 	};
 
@@ -86,5 +88,7 @@ public:
 	static void  PrintWindowedApps();
 
 	static void PrintSizeOfWindowedApps();
+
+	static void PrintProfiles();
 };
 

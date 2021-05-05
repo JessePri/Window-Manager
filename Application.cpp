@@ -3,11 +3,16 @@
 #include <Windows.h>
 #include <Psapi.h>
 #include <string>
+#include <iostream>
+#define UNICODE
 
-
+using std::cout;
+using std::wcout;
+using std::endl;
 using std::wstring;
 using std::exception;
 using std::to_wstring;
+
 
 Application::Application(_In_ HWND winHandle) {
 	hwnd = winHandle;
@@ -125,7 +130,6 @@ wstring Application::ToString() {
 		return L"Invalid Application Window! \n";
 	}
 	wstring toReturn;
-	toReturn += L"HWND: " + to_wstring((unsigned long)hwnd) + L"\n";
 	toReturn += L"x: " + to_wstring(x) + L"\n";
 	toReturn += L"y: " + to_wstring(y) + L"\n";
 	toReturn += L"width: " + to_wstring(width) + L"\n";

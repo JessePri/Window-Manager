@@ -24,5 +24,5 @@ int main()
 	wcout << L"################################################################" << endl;
 	AppManager::GetAllWindowedApplications();
 	AppManager::PrintWindowedApps();
-	AppManager::PrintSizeOfWindowedApps();
+	//AppManager::PrintSizeOfWindowedApps();
 }
