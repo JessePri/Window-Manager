@@ -33,8 +33,8 @@ private:
 	public:
 		std::vector<MoveInstruction> instructions;
 		Profile() = delete;
-		Profile(std::ifstream& constrainedFile, bool constrained);
-		void ReadProfileConstrained(std::ifstream& constrainedFile);
+		Profile(std::wifstream& constrainedFile, bool constrained);
+		void ReadProfileConstrained(std::wifstream& constrainedFile);
 		//ReadProfileAdvanced(std::ifstream& constrainedFile);
 	};
 

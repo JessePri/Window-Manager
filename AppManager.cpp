@@ -6,9 +6,10 @@
 #include <string>
 #include <fstream>
 
-
-using std::ifstream;
+using std::wstring;
+using std::wifstream;
 using std::vector;
+using std::getline;
 
 Application::WinMap AppManager::windowedApps;
 
@@ -39,7 +40,7 @@ const Application::WinMap& AppManager::GetWindowedApps() {
 }
 
 void AppManager::ReadProfilesConstrained(const char* filePath) {
-	ifstream input(filePath);
+	wifstream input(filePath);
 	if (input.is_open()) {
 		while (!input.eof()) {
 			profiles.emplace_back(input);
@@ -50,13 +51,15 @@ void AppManager::ReadProfilesConstrained(const char* filePath) {
 }
 
 
-AppManager::Profile::Profile(ifstream& input, bool constrained) {
+AppManager::Profile::Profile(wifstream& input, bool constrained) {
 	// The boolean will be used when the Advanced Profiles are implemented
 	// For now it should be ignored
 	ReadProfileConstrained(input);
 }
 
-void AppManager::Profile::ReadProfileConstrained(ifstream& input) {
-	// I will get back to this part
-	// After this I can get to testing
+void AppManager::Profile::ReadProfileConstrained(wifstream& input) {
+	wstring temp;
+	while (getline(input, temp)) {
+
+	}
 }
