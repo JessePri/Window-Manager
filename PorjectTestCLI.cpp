@@ -6,10 +6,23 @@
 #include <Windows.h>
 #include "WinHWNDPrinter.h"
 #include "ProcessInfo.h"
+#include "AppManager.h"
+#include <iostream>
+
+
+using std::wcout;
+using std::endl;
+
 
 int main()
 {
-	WinHWNDPrinter::PrintHWNDInfo();
-	//ProcessInfo pInfo;
-	//pInfo.PrintInfo();
+	//WinHWNDPrinter::PrintHWNDInfo();
+	wcout << L"################################################################" << endl;
+	wcout << L"################################################################" << endl;
+	wcout << L"################################################################" << endl;
+	wcout << L"################################################################" << endl;
+	wcout << L"################################################################" << endl;
+	AppManager::GetAllWindowedApplications();
+	AppManager::PrintWindowedApps();
+	AppManager::PrintSizeOfWindowedApps();
 }

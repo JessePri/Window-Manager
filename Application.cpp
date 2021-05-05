@@ -7,7 +7,7 @@
 
 using std::wstring;
 using std::exception;
-
+using std::to_wstring;
 
 Application::Application(_In_ HWND winHandle) {
 	hwnd = winHandle;
@@ -29,6 +29,9 @@ Application::Application(_In_ HWND winHandle) {
 		GetModuleFileNameEx(hProc, NULL, cstrPath, MAX_PATH);
 		wstring temp(cstrPath);
 		windowModulePath = std::move(temp);
+		if (!IsWindowVisible(winHandle)) {
+			valid = false;
+		}
 	} catch (exception e) {
 	#ifdef APPLICATION_DEBUG
 		// Do some logging.
@@ -81,7 +84,7 @@ const wstring& Application::GetWindowModulePath() const {
 
 void Application::SetPosition(int x, int y, int cx, int cy, UINT flags) {
 	try {
-		SetWindowPos(hwnd, NULL, x, y, cx, cy, flags);
+		SetWindowPos(hwnd, HWND_TOP, x, y, cx, cy, flags);
 	} catch (exception e) {
 	#ifdef APPLICATION_DEBUG
 		// Do some logging.
@@ -94,7 +97,7 @@ void Application::SetPosition(int x, int y, int cx, int cy, UINT flags) {
 
 void Application::HideWindow() {
 	try {
-		SetWindowPos(hwnd, NULL, x, y, width, depth, SWP_HIDEWINDOW);
+		SetWindowPos(hwnd, HWND_TOP, x, y, width, depth, SWP_HIDEWINDOW);
 	} catch (exception e) {
 	#ifdef APPLICATION_DEBUG
 		// Do some logging.
@@ -117,5 +120,18 @@ Application& Application::operator=(Application&& app) noexcept {
 	return *this;
 }
 
-
+wstring Application::ToString() {
+	if (!valid) {
+		return L"Invalid Application Window! \n";
+	}
+	wstring toReturn;
+	toReturn += L"HWND: " + to_wstring((unsigned long)hwnd) + L"\n";
+	toReturn += L"x: " + to_wstring(x) + L"\n";
+	toReturn += L"y: " + to_wstring(y) + L"\n";
+	toReturn += L"width: " + to_wstring(width) + L"\n";
+	toReturn += L"depth: " + to_wstring(depth) + L"\n";
+	toReturn += L"pastFlag: " + to_wstring(pastFlag) + L"\n";
+	toReturn += L"Module Path: " + windowModulePath + L"\n";
+	return toReturn;
+}
 

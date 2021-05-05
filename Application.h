@@ -20,6 +20,7 @@ private:
 	std::wstring windowModulePath;
 
 	bool valid;
+
 public:
 	typedef std::unordered_map<std::wstring, std::vector<Application>> WinMap;
 	/* Constructors */
@@ -49,7 +50,8 @@ public:
 	// Hides The Window
 	void HideWindow();
 
-	
+	//To String Method
+	std::wstring ToString();
 
 };
 

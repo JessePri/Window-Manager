@@ -5,12 +5,19 @@
 #include <vector>
 #include <string>
 #include <fstream>
+#include <iostream>
+
 
 using std::wstring;
 using std::wifstream;
 using std::vector;
 using std::getline;
+using std::stoi;
+using std::wcout;
+using std::endl;
 
+
+vector<AppManager::Profile> AppManager::profiles;
 Application::WinMap AppManager::windowedApps;
 
 void AppManager::GetAllWindowedApplications() {
@@ -19,18 +26,21 @@ void AppManager::GetAllWindowedApplications() {
 	EnumWindows(WindowConstructor, ignored);
 }
 
-BOOL CALLBACK AppManager::WindowConstructor(_In_ HWND hwnd, LPARAM IGNORED) {
+BOOL AppManager::WindowConstructor(_In_ HWND hwnd, LPARAM IGNORED) {
 	Application app(hwnd);
 	if (!app.IsValid()) {
+		wcout << "INVALID" << endl;
 		return true;
 	}
 	auto iter = windowedApps.find(app.GetWindowModulePath());
 	if (iter == windowedApps.end()) {
+		wcout << "Module Path Not Found" << endl;
 		vector<Application> temp;
 		temp.push_back(std::move(app));
-		windowedApps.emplace(app.GetWindowModulePath(),std::move(temp));
+		wstring key = temp[0].GetWindowModulePath();
+		windowedApps.emplace(key,std::move(temp));
 	} else {
-		iter->second.push_back(std::move(app));
+		iter->second.emplace_back(std::move(app));
 	}
 	return true;
 }
@@ -43,7 +53,7 @@ void AppManager::ReadProfilesConstrained(const char* filePath) {
 	wifstream input(filePath);
 	if (input.is_open()) {
 		while (!input.eof()) {
-			profiles.emplace_back(input);
+			profiles.emplace_back(input, true);
 		}
 	} else {
 		// Do some logging
@@ -59,7 +69,63 @@ AppManager::Profile::Profile(wifstream& input, bool constrained) {
 
 void AppManager::Profile::ReadProfileConstrained(wifstream& input) {
 	wstring temp;
+	unsigned char count = 0;
 	while (getline(input, temp)) {
-
+		if (temp._Equal(L"END")) {
+			break;
+		}
+		instructions.emplace_back();
+		if (count == 0) {
+			instructions.back().filePath = temp;
+			++count;
+		} else if (count == 1) {
+			instructions.back().appIndex = stoi(temp);
+			++count;
+		} else if (count == 2) {
+			instructions.back().x = stoi(temp);
+			++count;
+		} else if (count == 3) {
+			instructions.back().y = stoi(temp);
+			++count;
+		} else if (count == 4) {
+			instructions.back().cx = stoi(temp);
+			++count;
+		} else if (count == 5) {
+			instructions.back().cy = stoi(temp);
+			count = 0;
+		}
 	}
+	if (count > 0) {
+		instructions.pop_back();
+	}
+}
+
+void AppManager::RunProfile(unsigned int index) {
+	for (AppManager::Profile::MoveInstruction instruction : profiles[index].instructions) {
+		RunInstruction(instruction);
+	}
+}
+
+void AppManager::RunInstruction(const AppManager::Profile::MoveInstruction& instruction) {
+	auto iter = windowedApps.find(instruction.filePath);
+	if (iter == windowedApps.end()) {
+		return;
+	}
+	iter->second[instruction.appIndex].SetPosition
+	(instruction.x, instruction.y, instruction.cx, instruction.cy, SWP_ASYNCWINDOWPOS | SWP_SHOWWINDOW);
+}
+
+
+void AppManager::PrintWindowedApps() {
+	for (auto& p : windowedApps) {
+		for (auto& a : p.second) {
+			wcout << L"/////////////////////////////////////////////" << endl;
+			wcout << a.ToString() << endl;
+			wcout << L"/////////////////////////////////////////////" << endl;
+		}
+	}
+}
+
+void AppManager::PrintSizeOfWindowedApps() {
+	wcout << windowedApps.size() << endl;
 }

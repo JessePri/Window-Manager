@@ -6,12 +6,14 @@
 #include <string>
 #include <fstream>
 
+
 class AppManager {
 private:
 	class Profile {
 	private:
-		void ReadProfileConstrained(std::ifstream& constrainedFile);
+		void ReadProfileConstrained(std::wifstream& constrainedFile);
 
+	public:
 		struct MoveInstruction {
 			std::wstring filePath;
 			unsigned int appIndex;
@@ -19,7 +21,15 @@ private:
 			int y;
 			int cx;
 			int cy;
-			MoveInstruction() = delete;
+			MoveInstruction() {
+				WCHAR c = '0';
+				filePath = c;
+				appIndex = 0;
+				x = 0;
+				y = 0;
+				cx = 0;
+				cy = 0;
+			}
 			MoveInstruction(std::wstring&& path, unsigned int index, int xx, int yy, int ccx, int ccy) {
 				filePath = std::move(path);
 				appIndex = index;
@@ -30,19 +40,18 @@ private:
 			}
 		};
 
-	public:
 		std::vector<MoveInstruction> instructions;
 		Profile() = delete;
 		Profile(std::wifstream& constrainedFile, bool constrained);
-		void ReadProfileConstrained(std::wifstream& constrainedFile);
 		//ReadProfileAdvanced(std::ifstream& constrainedFile);
 	};
+
+	static void RunInstruction(const Profile::MoveInstruction& instruction);
 
 	static Application::WinMap windowedApps;
 	static std::vector<Profile> profiles;
 
 public:
-
 
 	// Initialisers
 
@@ -72,6 +81,10 @@ public:
 	// Getter
 	const Application::WinMap& GetWindowedApps();
 
+	static void  RunProfile(unsigned int index);
+	
+	static void  PrintWindowedApps();
 
+	static void PrintSizeOfWindowedApps();
 };
 
