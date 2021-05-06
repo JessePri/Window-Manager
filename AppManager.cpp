@@ -1,5 +1,6 @@
 #include "AppManager.h"
 #include "Application.h"
+#include "Displays.h"
 #include <Windows.h>
 #include <Psapi.h>
 #include <vector>
@@ -20,6 +21,11 @@ using std::to_wstring;
 
 vector<AppManager::Profile> AppManager::profiles;
 Application::WinMap AppManager::windowedApps;
+
+void AppManager::Initialize() {
+	Displays::Initialize();
+	GetAllWindowedApplications();
+}
 
 void AppManager::GetAllWindowedApplications() {
 	windowedApps.clear();

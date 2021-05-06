@@ -56,9 +56,8 @@ private:
 
 public:
 
-	// Initializer
-
-	//static void LoadEnviroment();
+	// Backend Initializer
+	static void Initialize();
 
 	// Initialiser Helpers
 

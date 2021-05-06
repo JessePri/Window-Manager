@@ -141,6 +141,7 @@
   <ItemGroup>
     <ClCompile Include="AppManager.cpp" />
     <ClCompile Include="Application.cpp" />
+    <ClCompile Include="Displays.cpp" />
     <ClCompile Include="PorjectTestCLI.cpp" />
     <ClCompile Include="ProcessInfo.cpp" />
     <ClCompile Include="WinHWNDPrinter.cpp" />
@@ -148,6 +149,7 @@
   <ItemGroup>
     <ClInclude Include="AppManager.h" />
     <ClInclude Include="Application.h" />
+    <ClInclude Include="Displays.h" />
     <ClInclude Include="ProcessInfo.h" />
     <ClInclude Include="WinHWNDPrinter.h" />
   </ItemGroup>
