@@ -23,9 +23,10 @@ int main()
 	wcout << L"################################################################" << endl;
 	wcout << L"################################################################" << endl;
 	wcout << L"################################################################" << endl;
-	AppManager::GetAllWindowedApplications();
-	AppManager::PrintWindowedApps();
 	Displays::Initialize();
+	AppManager::Initialize();
+	//AppManager::PrintWindowedApps();
 	wcout << Displays::ToString() << endl;
+	AppManager::PrintProfiles();
 	//AppManager::PrintSizeOfWindowedApps();
 }

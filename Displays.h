@@ -24,10 +24,10 @@ public:
 	/* Writes to a file that will be used by the front end
 	*	- This file will be updated every time the user launches the front end of the application
 	*	- This will determine what the Profile selection and edit screens will look like
-	*	- This file will should be read during the loading face of the application
+	*	- This file will should be read during the loading faze of the application
 	*/
 	
-	//static void WriteDisplays(); later displays are for now assumed to be 1920 by 1080.
+	//static void WriteDisplays(); later displays are for now assumed to be 1920 by 1080
 
 	static std::wstring ToString();
 

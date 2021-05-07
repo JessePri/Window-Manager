@@ -10,11 +10,24 @@
 
 class AppManager {
 private:
+
 	class Profile {
 	private:
 		void ReadProfileConstrained(std::wifstream& constrainedFile);
 
 	public:
+		struct PreInstruction {
+			std::wstring filePath = L"";
+			unsigned int appIndex = 0;
+			unsigned int displayID = 0;
+			double totalX = 0;
+			double totalY = 0;
+			double startX = 0;
+			double startY = 0;
+			double widthX = 0;
+			double widthY = 0;
+		};
+
 		struct MoveInstruction {
 			std::wstring filePath;
 			unsigned int appIndex;
@@ -31,16 +44,11 @@ private:
 				cx = 0;
 				cy = 0;
 			}
-			MoveInstruction(std::wstring&& path, unsigned int index, int xx, int yy, int ccx, int ccy) {
-				filePath = std::move(path);
-				appIndex = index;
-				x = xx;
-				y = yy;
-				cx = ccx;
-				cy = ccy;
-			}
+			MoveInstruction(const PreInstruction& preInstruction);
 			std::wstring ToString();
 		};
+
+		
 
 		std::vector<MoveInstruction> instructions;
 		Profile() = delete;
@@ -74,6 +82,7 @@ public:
 	*	- The file format for each process which is to be loaded at the start of the front end would be as follows
 	*		- exePath: The path of the exe of the application (the user should give us this in the GUI application)
 	*		- identifier: The number of the app (identifies two seperate apps)
+	*		- display identifier: The index of the display inside of displays
 	*		- totalX: The total amount of X divisions of the screen for which the movement in based on
 	*		- totalY: Same as above except vertical
 	*		- startX: The left most starting border of the window
@@ -84,10 +93,9 @@ public:
 	*		NOTE: A different file format will be used for custom profile that are more specifc than the above
 	*/			
 
-	static void ReadProfilesConstrained(const char* filePath);
+	static void ReadProfilesConstrained(const WCHAR* filePath);
 
 
-	// Getter
 	const Application::WinMap& GetWindowedApps();
 
 	static void  RunProfile(unsigned int index);

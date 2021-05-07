@@ -23,8 +23,8 @@ vector<AppManager::Profile> AppManager::profiles;
 Application::WinMap AppManager::windowedApps;
 
 void AppManager::Initialize() {
-	Displays::Initialize();
 	GetAllWindowedApplications();
+	ReadProfilesConstrained(L"C:\\Projects\\Windows Organizer\\PorjectTestCLI\\Release\\ProfileTest.txt");
 }
 
 void AppManager::GetAllWindowedApplications() {
@@ -36,16 +36,14 @@ void AppManager::GetAllWindowedApplications() {
 BOOL AppManager::WindowConstructor(_In_ HWND hwnd, LPARAM IGNORED) {
 	Application app(hwnd);
 	if (!app.IsValid()) {
-		wcout << "INVALID" << endl;
 		return true;
 	}
 	auto iter = windowedApps.find(app.GetWindowModulePath());
 	if (iter == windowedApps.end()) {
-		wcout << "Module Path Not Found" << endl;
 		vector<Application> temp;
 		temp.push_back(std::move(app));
 		wstring key = temp[0].GetWindowModulePath();
-		windowedApps.emplace(key,std::move(temp));
+		windowedApps.emplace(key, std::move(temp));
 	} else {
 		iter->second.emplace_back(std::move(app));
 	}
@@ -56,13 +54,14 @@ const Application::WinMap& AppManager::GetWindowedApps() {
 	return windowedApps;
 }
 
-void AppManager::ReadProfilesConstrained(const char* filePath) {
+void AppManager::ReadProfilesConstrained(const WCHAR* filePath) {
 	wifstream input(filePath);
 	if (input.is_open()) {
 		while (!input.eof()) {
 			profiles.emplace_back(input, true);
 		}
 	} else {
+		wcout << "FILE NOT OPEN" << endl;
 		// Do some logging
 	}
 }
@@ -74,41 +73,49 @@ AppManager::Profile::Profile(wifstream& input, bool constrained) {
 	ReadProfileConstrained(input);
 }
 
-/* You wrote this wrong...
-*	- You are not reading the complete data set into this
-*		1. Per App window move you are reading 8 THINGS (not 6)
-*		2. You are computing the move instruction not making it
-*		4. Before this you need this application to find 
-*			the size of the screen
-*		5. After you do the above you need to write the ToString
-*			and Print methods
-*/
 void AppManager::Profile::ReadProfileConstrained(wifstream& input) {
 	wstring temp;
-	unsigned char count = 0;
+	int count = 0;
+	PreInstruction preInstruction;
+	bool lastIter = false;
+	unsigned int rcount = 0;
 	while (getline(input, temp)) {
+		++rcount;
 		if (temp._Equal(L"END")) {
 			break;
 		}
-		instructions.emplace_back();
 		if (count == 0) {
-			instructions.back().filePath = temp;
+			preInstruction.filePath = temp;
 			++count;
 		} else if (count == 1) {
-			instructions.back().appIndex = stoi(temp);
+			preInstruction.appIndex = stoi(temp);
 			++count;
 		} else if (count == 2) {
-			instructions.back().x = stoi(temp);
+			preInstruction.displayID = stoi(temp);
 			++count;
 		} else if (count == 3) {
-			instructions.back().y = stoi(temp);
+			preInstruction.totalX = stoi(temp);
 			++count;
 		} else if (count == 4) {
-			instructions.back().cx = stoi(temp);
+			preInstruction.totalY = stoi(temp);
 			++count;
 		} else if (count == 5) {
-			instructions.back().cy = stoi(temp);
+			preInstruction.startX = stoi(temp);
+			++count;
+		} else if (count == 6) {
+			preInstruction.startY = stoi(temp);
+			++count;
+		} else if (count == 7) {
+			preInstruction.widthX = stoi(temp);
+			++count;
+		} else if (count == 8) {
+			preInstruction.widthY = stoi(temp);
+			lastIter = true;
 			count = 0;
+		}
+		if (lastIter) {
+			instructions.emplace_back(preInstruction);
+			lastIter = false;
 		}
 	}
 	if (count > 0) {
@@ -149,28 +156,58 @@ void AppManager::PrintSizeOfWindowedApps() {
 
 wstring AppManager::Profile::MoveInstruction::ToString() {
 	wstring toReturn = filePath;
-	toReturn += L"App Index: " + to_wstring(appIndex);
+	toReturn += L"\nApp Index: " + to_wstring(appIndex) + L"\n";
 	toReturn += L"x: " + to_wstring(x) + L"\n";
-	toReturn += L"y: " + to_wstring(x) + L"\n";
+	toReturn += L"y: " + to_wstring(y) + L"\n";
 	toReturn += L"cx: " + to_wstring(cx) + L"\n";
 	toReturn += L"cy: " + to_wstring(cy) + L"\n";
 	return toReturn;
 }
 
 wstring AppManager::Profile::ToString() {
+	unsigned int count = 0;
 	wstring toReturn = L"";
 	for (MoveInstruction instruction : instructions) {
 		toReturn += L"-----------------------------------------\n";
 		toReturn += instruction.ToString();
 		toReturn += L"-----------------------------------------\n";
+		++count;
 	}
 	return toReturn;
 }
 
 void AppManager::PrintProfiles() {
+	unsigned int count = 0;
 	for (Profile profile : profiles) {
 		wcout << "#############################################" << endl;
 		wcout << profile.ToString() << endl;
 		wcout << "#############################################" << endl;
+		++count;
+	}
+}
+
+AppManager::Profile::MoveInstruction::MoveInstruction(const PreInstruction& preInstruction) {
+	filePath = preInstruction.filePath;
+	appIndex = preInstruction.appIndex;
+
+	double left = (double)Displays::displays[preInstruction.displayID].workArea.left;
+	double right = (double)Displays::displays[preInstruction.displayID].workArea.right;
+	double top = (double)Displays::displays[preInstruction.displayID].workArea.top;
+	double bottom = (double)Displays::displays[preInstruction.displayID].workArea.bottom;
+
+	double blockX = (right - left) / preInstruction.totalX;
+	double blockY = (bottom - top) / preInstruction.totalY;
+
+	x = preInstruction.startX * blockX + left;
+	y = preInstruction.startY * blockY + top;
+	cx = preInstruction.widthX * blockX;
+	cy = preInstruction.widthY * blockY;
+
+	// Idea is to ensure a full screen even if there is slight (1-2 pixel overlap between windows)
+	if (blockX * preInstruction.totalX < (right - left)) {
+		++cx;
+	}
+	if (blockY * preInstruction.totalY < (bottom - top)) {
+		++cy;
 	}
 }
