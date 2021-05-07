@@ -3,6 +3,7 @@
 #include <Windows.h>
 #include <vector>
 #include "Application.h"
+#include "Displays.h"
 #include <string>
 #include <fstream>
 
@@ -97,7 +98,5 @@ public:
 
 	static void PrintProfiles();
 
-	// Only single monitor for now
-	static void FindMonitor()
 };
 

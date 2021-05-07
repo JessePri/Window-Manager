@@ -13,11 +13,11 @@ using std::wstring;
 using std::to_wstring;
 
 
-vector<Displays::Display> displays;
+vector<Displays::Display> Displays::displays;
 
 void Displays::Initialize() {
 	MONITORENUMPROC p = FindMonitor;
-	LPARAM toIgnore;
+	LPARAM toIgnore = 0;
 	EnumDisplayMonitors(NULL, NULL, p, toIgnore);
 }
 
@@ -26,11 +26,12 @@ void Displays::Initialize() {
 
 BOOL CALLBACK Displays::FindMonitor(HMONITOR h, HDC ignore1, LPRECT rect, LPARAM ignore2) {
 	displays.emplace_back(h, *rect);
+	return true;
 }
 
 wstring Displays::ToString() {
 	wstring toReturn = L"";
-	for (auto display : displays) {
+	for (auto& display : displays) {
 		toReturn += L"-------------------------------------------\n";
 		toReturn += display.ToString();
 		toReturn += L"-------------------------------------------\n";

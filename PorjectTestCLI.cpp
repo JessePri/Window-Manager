@@ -5,6 +5,7 @@
 #include <string>
 #include <Windows.h>
 #include "WinHWNDPrinter.h"
+#include "Displays.h";
 #include "ProcessInfo.h"
 #include "AppManager.h"
 #include <iostream>
@@ -24,5 +25,7 @@ int main()
 	wcout << L"################################################################" << endl;
 	AppManager::GetAllWindowedApplications();
 	AppManager::PrintWindowedApps();
+	Displays::Initialize();
+	wcout << Displays::ToString() << endl;
 	//AppManager::PrintSizeOfWindowedApps();
 }
