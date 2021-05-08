@@ -26,7 +26,7 @@ int main()
 	Displays::Initialize();
 	AppManager::Initialize();
 	wcout << Displays::ToString() << endl;
-	//AppManager::PrintWindowedApps();
+	AppManager::PrintWindowedApps();
 	AppManager::PrintProfiles();
 	AppManager::RunProfile(0);
 }

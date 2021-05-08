@@ -203,10 +203,10 @@ AppManager::Profile::MoveInstruction::MoveInstruction(const PreInstruction& preI
 	double blockX = (right - left) / preInstruction.totalX;
 	double blockY = (bottom - top) / preInstruction.totalY;
 
-	x = preInstruction.startX * blockX + left;
+	x = preInstruction.startX * blockX + left - 8;
 	y = preInstruction.startY * blockY + top;
-	cx = preInstruction.widthX * blockX;
-	cy = preInstruction.widthY * blockY;
+	cx = preInstruction.widthX * blockX + 16;
+	cy = preInstruction.widthY * blockY + 8;
 
 	// Idea is to ensure a full screen even if there is slight (1-2 pixel overlap between windows)
 	if (blockX * preInstruction.totalX < (right - left)) {

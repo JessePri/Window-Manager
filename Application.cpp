@@ -108,7 +108,7 @@ void Application::SetPosition(int x, int y, int cx, int cy, UINT flags) {
 
 void Application::HideWindow() {
 	try {
-		SetWindowPos(hwnd, HWND_TOP, x, y, width, depth, SWP_HIDEWINDOW);
+		SetWindowPos(hwnd, HWND_TOPMOST, x, y, width, depth, SWP_HIDEWINDOW);
 	} catch (exception e) {
 	#ifdef APPLICATION_DEBUG
 		// Do some logging.
