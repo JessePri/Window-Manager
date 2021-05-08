@@ -153,9 +153,6 @@
     <ClInclude Include="ProcessInfo.h" />
     <ClInclude Include="WinHWNDPrinter.h" />
   </ItemGroup>
-  <ItemGroup>
-    <Text Include="ProfileTest.txt" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

@@ -24,7 +24,7 @@ Application::WinMap AppManager::windowedApps;
 
 void AppManager::Initialize() {
 	GetAllWindowedApplications();
-	ReadProfilesConstrained(L"C:\\Projects\\Windows Organizer\\PorjectTestCLI\\Release\\ProfileTest.txt");
+	ReadProfilesConstrained(L"ProfileTest.txt");
 }
 
 void AppManager::GetAllWindowedApplications() {
