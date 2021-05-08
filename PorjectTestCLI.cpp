@@ -25,8 +25,8 @@ int main()
 	wcout << L"################################################################" << endl;
 	Displays::Initialize();
 	AppManager::Initialize();
-	//AppManager::PrintWindowedApps();
 	wcout << Displays::ToString() << endl;
+	//AppManager::PrintWindowedApps();
 	AppManager::PrintProfiles();
-	//AppManager::PrintSizeOfWindowedApps();
+	AppManager::RunProfile(0);
 }

@@ -8,7 +8,7 @@ C:\Program Files (x86)\Google\Chrome\Application\chrome.exe
 2
 1
 C:\Program Files (x86)\Google\Chrome\Application\chrome.exe
-0
+1
 0
 3
 1

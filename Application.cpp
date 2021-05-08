@@ -46,6 +46,7 @@ Application::Application(_In_ HWND winHandle) {
 }
 
 Application::Application(Application&& app) noexcept {
+	hwnd = app.hwnd;
 	x = std::move(app.x);
 	y = std::move(app.y);
 	width = std::move(app.width);
@@ -89,11 +90,16 @@ const wstring& Application::GetWindowModulePath() const {
 
 void Application::SetPosition(int x, int y, int cx, int cy, UINT flags) {
 	try {
-		SetWindowPos(hwnd, HWND_TOP, x, y, cx, cy, flags);
+		wcout << x << ", " << y << ", " << cx << ", " << cy << endl;
+		SetWindowPos(hwnd, HWND_TOP, x, y, cx, cy, SWP_SHOWWINDOW | SWP_ASYNCWINDOWPOS); // needs to change
+		cout << "HANDLE: " << hwnd << endl;
+		cout << "ran it.." << endl;
+		wcout << ToString() << endl;
 	} catch (exception e) {
 	#ifdef APPLICATION_DEBUG
 		// Do some logging.
 	#endif
+		cout << "ERROR" << endl;
 		valid = false;
 		return;
 	}
@@ -114,6 +120,7 @@ void Application::HideWindow() {
 
 Application& Application::operator=(Application&& app) noexcept {
 	if (this != &app) {
+		hwnd = app.hwnd;
 		x = std::move(app.x);
 		y = std::move(app.y);
 		width = std::move(app.width);

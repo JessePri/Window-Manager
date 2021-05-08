@@ -45,7 +45,7 @@ private:
 				cy = 0;
 			}
 			MoveInstruction(const PreInstruction& preInstruction);
-			std::wstring ToString();
+			std::wstring ToString() const;
 		};
 
 		

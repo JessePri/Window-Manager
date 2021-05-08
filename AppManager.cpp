@@ -17,6 +17,7 @@ using std::stoi;
 using std::wcout;
 using std::endl;
 using std::to_wstring;
+using std::cout;
 
 
 vector<AppManager::Profile> AppManager::profiles;
@@ -43,7 +44,7 @@ BOOL AppManager::WindowConstructor(_In_ HWND hwnd, LPARAM IGNORED) {
 		vector<Application> temp;
 		temp.push_back(std::move(app));
 		wstring key = temp[0].GetWindowModulePath();
-		windowedApps.emplace(key, std::move(temp));
+		windowedApps.emplace(key,std::move(temp));
 	} else {
 		iter->second.emplace_back(std::move(app));
 	}
@@ -125,6 +126,7 @@ void AppManager::Profile::ReadProfileConstrained(wifstream& input) {
 
 void AppManager::RunProfile(unsigned int index) {
 	for (AppManager::Profile::MoveInstruction instruction : profiles[index].instructions) {
+		wcout << "Attempting to RunInstruction" << endl;
 		RunInstruction(instruction);
 	}
 }
@@ -132,10 +134,13 @@ void AppManager::RunProfile(unsigned int index) {
 void AppManager::RunInstruction(const AppManager::Profile::MoveInstruction& instruction) {
 	auto iter = windowedApps.find(instruction.filePath);
 	if (iter == windowedApps.end()) {
+		wcout << "Appliction Not Found..." << endl;
 		return;
 	}
+	wcout << instruction.ToString() << endl;
 	iter->second[instruction.appIndex].SetPosition
-	(instruction.x, instruction.y, instruction.cx, instruction.cy, SWP_ASYNCWINDOWPOS | SWP_SHOWWINDOW);
+	(instruction.x, instruction.y, instruction.cx, instruction.cy, SWP_ASYNCWINDOWPOS);
+	
 }
 
 
@@ -143,7 +148,7 @@ void AppManager::PrintWindowedApps() {
 	for (auto& p : windowedApps) {
 		for (auto& a : p.second) {
 			wcout << L"/////////////////////////////////////////////" << endl;
-			wcout << "HWND: " << a.GetHWND() << endl;
+			cout << "HWND: " << a.GetHWND() << endl;
 			wcout << a.ToString() << endl;
 			wcout << L"/////////////////////////////////////////////" << endl;
 		}
@@ -154,7 +159,7 @@ void AppManager::PrintSizeOfWindowedApps() {
 	wcout << windowedApps.size() << endl;
 }
 
-wstring AppManager::Profile::MoveInstruction::ToString() {
+wstring AppManager::Profile::MoveInstruction::ToString() const {
 	wstring toReturn = filePath;
 	toReturn += L"\nApp Index: " + to_wstring(appIndex) + L"\n";
 	toReturn += L"x: " + to_wstring(x) + L"\n";
@@ -211,3 +216,4 @@ AppManager::Profile::MoveInstruction::MoveInstruction(const PreInstruction& preI
 		++cy;
 	}
 }
+
