@@ -25,7 +25,19 @@ void Displays::Initialize() {
 // If it doesn't work properly with multip monitors we would need to use EnumDisplayDevices
 
 BOOL CALLBACK Displays::FindMonitor(HMONITOR h, HDC ignore1, LPRECT rect, LPARAM ignore2) {
-	displays.emplace_back(h, *rect);
+	MONITORINFO monitorInfo;
+	monitorInfo.cbSize = sizeof(monitorInfo);
+	GetMonitorInfo(h, &monitorInfo);
+
+	wcout << L"%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << endl;
+	wcout << monitorInfo.rcWork.left << endl;
+	wcout << monitorInfo.rcWork.right << endl;
+	wcout << monitorInfo.rcWork.top << endl;
+	wcout << monitorInfo.rcWork.bottom << endl;
+	wcout << L"%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << endl;
+
+	displays.emplace_back(h, monitorInfo.rcWork);
+	//displays.emplace_back(h, *rect);
 	return true;
 }
 
