@@ -90,7 +90,8 @@ const wstring& Application::GetWindowModulePath() const {
 
 void Application::SetPosition(int x, int y, int cx, int cy, UINT flags) {
 	try {
-		SetWindowPos(hwnd, HWND_TOP, x, y, cx, cy, SWP_SHOWWINDOW | SWP_ASYNCWINDOWPOS); // needs to change
+		SetWindowPos(hwnd, HWND_TOP, x, y, cx, cy, SWP_SHOWWINDOW | SWP_ASYNCWINDOWPOS);// needs to change
+		ShowWindow(hwnd, SW_SHOWNORMAL);		// This could be used for the hide function
 	} catch (exception e) {
 	#ifdef APPLICATION_DEBUG
 		// Do some logging.
