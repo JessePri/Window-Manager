@@ -137,7 +137,10 @@ void AppManager::RunInstruction(const AppManager::Profile::MoveInstruction& inst
 		wcout << "Appliction Not Found..." << endl;
 		return;
 	}
+	wcout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << endl;
 	wcout << instruction.ToString() << endl;
+	iter->second[instruction.appIndex].PrintApplicaiton();
+	wcout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << endl;
 	iter->second[instruction.appIndex].SetPosition
 	(instruction.x, instruction.y, instruction.cx, instruction.cy, SWP_ASYNCWINDOWPOS);
 	

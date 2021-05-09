@@ -8,9 +8,10 @@
 #include "Displays.h";
 #include "ProcessInfo.h"
 #include "AppManager.h"
-#include <iostream>
 
 
+using std::string;
+using std::cin;
 using std::wcout;
 using std::endl;
 
@@ -28,5 +29,6 @@ int main()
 	wcout << Displays::ToString() << endl;
 	AppManager::PrintWindowedApps();
 	AppManager::PrintProfiles();
+	cin.get();
 	AppManager::RunProfile(0);
 }

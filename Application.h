@@ -53,5 +53,6 @@ public:
 	//To String Method
 	std::wstring ToString();
 
+	void PrintApplicaiton();
 };
 

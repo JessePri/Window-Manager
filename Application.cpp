@@ -90,6 +90,7 @@ const wstring& Application::GetWindowModulePath() const {
 
 void Application::SetPosition(int x, int y, int cx, int cy, UINT flags) {
 	try {
+		ShowWindow(hwnd, SW_SHOWNORMAL);	// So far both of these ShowWindow statements resolve buggyness
 		SetWindowPos(hwnd, HWND_TOP, x, y, cx, cy, SWP_SHOWWINDOW | SWP_ASYNCWINDOWPOS);// needs to change
 		ShowWindow(hwnd, SW_SHOWNORMAL);		// This could be used for the hide function
 	} catch (exception e) {
@@ -141,5 +142,10 @@ wstring Application::ToString() {
 	toReturn += L"pastFlag: " + to_wstring(pastFlag) + L"\n";
 	toReturn += L"Module Path: " + windowModulePath + L"\n";
 	return toReturn;
+}
+
+void Application::PrintApplicaiton() {
+	cout << "HWND: " << hwnd << endl;
+	wcout << ToString() << endl;
 }
 
