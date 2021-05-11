@@ -38,8 +38,8 @@ public:
 	int GetDepth() const;
 	const UINT& GetPastFlag() const;
 	const std::wstring& GetWindowModulePath() const;
-	bool IsValid() const;	// Not to be used as a helper function
-
+	bool IsValid() const;	
+	bool CheckValid() const;
 	/* Methods */
 
 	// Wrapper Method for SetWindowPos(...)

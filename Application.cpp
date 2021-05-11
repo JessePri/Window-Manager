@@ -150,3 +150,19 @@ void Application::PrintApplicaiton() {
 	wcout << ToString() << endl;
 }
 
+bool Application::CheckValid() const {
+	try {
+		DWORD dwProcId = 0;
+		TCHAR cstrPath[MAX_PATH];
+		GetWindowThreadProcessId(hwnd, &dwProcId);
+		HANDLE hProc = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, dwProcId);
+		GetModuleFileNameEx(hProc, NULL, cstrPath, MAX_PATH);
+		wstring temp(cstrPath);
+		if (temp == windowModulePath) {
+			return true;
+		}
+	} catch (exception e) {
+		return false;
+	}
+}
+

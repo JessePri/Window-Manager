@@ -29,6 +29,6 @@ int main()
 	wcout << Displays::ToString() << endl;
 	AppManager::PrintWindowedApps();
 	AppManager::PrintProfiles();
-	//cin.get();
+	cin.get();
 	AppManager::RunProfile(0);
 }

@@ -59,6 +59,12 @@ private:
 
 	static void RunInstruction(const Profile::MoveInstruction& instruction);
 
+	static void CreateNewWindow(const AppManager::Profile::MoveInstruction& instruction);
+
+	static BOOL CALLBACK FindNewValidWindow(_In_ HWND hwnd, LPARAM);
+	static Application newValidWindow;
+	static std::wstring modulePathToCompare;
+
 	static Application::WinMap windowedApps;
 	static std::vector<Profile> profiles;
 	static MONITORINFO monitorInfo;

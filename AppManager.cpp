@@ -21,7 +21,7 @@ using std::cout;
 
 
 vector<AppManager::Profile> AppManager::profiles;
-Application::WinMap AppManager::windowedApps;
+AppManager::WinMap AppManager::windowedApps;
 
 void AppManager::Initialize() {
 	GetAllWindowedApplications();
@@ -34,6 +34,7 @@ void AppManager::GetAllWindowedApplications() {
 	EnumWindows(WindowConstructor, ignored);
 }
 
+// Needs to be modified
 BOOL AppManager::WindowConstructor(_In_ HWND hwnd, LPARAM IGNORED) {
 	Application app(hwnd);
 	if (!app.IsValid()) {
@@ -44,7 +45,7 @@ BOOL AppManager::WindowConstructor(_In_ HWND hwnd, LPARAM IGNORED) {
 		vector<Application> temp;
 		temp.push_back(std::move(app));
 		wstring key = temp[0].GetWindowModulePath();
-		windowedApps.emplace(key,std::move(temp));
+		windowedApps.emplace(key, std::move(temp));
 	} else {
 		iter->second.emplace_back(std::move(app));
 	}
@@ -134,18 +135,18 @@ void AppManager::RunProfile(unsigned int index) {
 void AppManager::RunInstruction(const AppManager::Profile::MoveInstruction& instruction) {
 	auto iter = windowedApps.find(instruction.filePath);
 	if (iter == windowedApps.end()) {
-		wcout << "Appliction Not Found..." << endl;
-		return;
-	}
+		CreateNewWindow(instruction);
+	} 
+
+	
 	wcout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << endl;
 	wcout << instruction.ToString() << endl;
 	iter->second[instruction.appIndex].PrintApplicaiton();
 	wcout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << endl;
 	iter->second[instruction.appIndex].SetPosition
 	(instruction.x, instruction.y, instruction.cx, instruction.cy, SWP_ASYNCWINDOWPOS);
-	
-}
 
+}
 
 void AppManager::PrintWindowedApps() {
 	for (auto& p : windowedApps) {
@@ -219,4 +220,38 @@ AppManager::Profile::MoveInstruction::MoveInstruction(const PreInstruction& preI
 		++cy;
 	}
 }
+
+
+void AppManager::CreateNewWindow(const AppManager::Profile::MoveInstruction& instruction) {
+	CreateProcess(instruction.filePath.c_str(), NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+	Sleep(1000);
+	EnumWindows(FindNewValidWindow, 0);
+}
+
+// This needs to be modified
+BOOL AppManager::FindNewValidWindow(_In_ HWND hwnd, LPARAM) {
+	Application temp(hwnd);
+	if (temp.GetWindowModulePath() != modulePathToCompare) {
+		return true;
+	}
+	auto iter = windowedApps.find(modulePathToCompare);
+	if (iter == windowedApps.end()) {
+		newValidWindow = std::move(temp);
+	} else {
+		for (Application& app : iter->second) {
+			if (app.GetHWND() == temp.GetHWND()) {
+				return true;
+			}
+		}
+		newValidWindow = std::move(temp);
+	}
+	return false;
+	// Check if the module has an application with the following module path
+	// If it does then check all the hwnd values and return false once you have found that it is not contained
+	// If it doesn't then you would return false
+	// In both cases before returing the newValidWindow should be set
+	// After this continue the logic that you were developing in the RunInstruction(...) function
+}
+
+
 
