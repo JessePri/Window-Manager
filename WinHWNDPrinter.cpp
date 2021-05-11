@@ -80,6 +80,7 @@ BOOL WinHWNDPrinter::InfoProcHelper(_In_ HWND hwnd, _In_ LPARAM IGNORED) {
 	PrintRect(hwnd);
 	PrintStyles(hwnd);
 	PrintModuleFile(hwnd);
+	//SetWindowPos(hwnd, HWND_TOP, 0, 0, 500, 500, SWP_SHOWWINDOW | SWP_NOREPOSITION | SWP_NOMOVE);
 	cout << "------------------------------------------" << endl;
 	return true;
 }
