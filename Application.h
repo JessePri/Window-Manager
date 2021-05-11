@@ -22,7 +22,6 @@ private:
 	bool valid;
 
 public:
-	typedef std::unordered_map<std::wstring, std::vector<Application>> WinMap;
 	/* Constructors */
 
 	Application() = delete;

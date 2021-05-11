@@ -9,8 +9,9 @@
 
 
 class AppManager {
+public:
+	typedef std::unordered_map<std::wstring, std::vector<Application>> WinMap;
 private:
-
 	class Profile {
 	private:
 		void ReadProfileConstrained(std::wifstream& constrainedFile);
@@ -59,13 +60,13 @@ private:
 
 	static void RunInstruction(const Profile::MoveInstruction& instruction);
 
-	static void CreateNewWindow(const AppManager::Profile::MoveInstruction& instruction);
+	//static void CreateNewWindow(const AppManager::Profile::MoveInstruction& instruction);
+	//
+	//static BOOL CALLBACK FindNewValidWindow(_In_ HWND hwnd, LPARAM);
+	//static Application newValidWindow;
+	//static std::wstring modulePathToCompare;
 
-	static BOOL CALLBACK FindNewValidWindow(_In_ HWND hwnd, LPARAM);
-	static Application newValidWindow;
-	static std::wstring modulePathToCompare;
-
-	static Application::WinMap windowedApps;
+	static WinMap windowedApps;
 	static std::vector<Profile> profiles;
 	static MONITORINFO monitorInfo;
 
@@ -102,7 +103,7 @@ public:
 	static void ReadProfilesConstrained(const WCHAR* filePath);
 
 
-	const Application::WinMap& GetWindowedApps();
+	const WinMap& GetWindowedApps();
 
 	static void  RunProfile(unsigned int index);
 	
