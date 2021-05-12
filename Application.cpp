@@ -14,6 +14,13 @@ using std::exception;
 using std::to_wstring;
 
 
+/* Things you will eventually need to fix (or not)
+*	- This doesn't really catch system exceptions you could
+*		1. Make part the code that reads and gets the proccess handle part of a
+*			__try __except with a helper fucntion to do the constructing 
+*		2. You could ignore this issue since EnumWindows is really fast so a user would have to run 
+*				the app then close a window imediatley for it to crash
+*/
 Application::Application(_In_ HWND winHandle) {
 	hwnd = winHandle;
 	try {
@@ -102,7 +109,7 @@ void Application::SetPosition(int x, int y, int cx, int cy, UINT flags) {
 		valid = false;
 		return;
 	}
-	
+
 }
 
 void Application::HideWindow() {
@@ -132,6 +139,7 @@ Application& Application::operator=(Application&& app) noexcept {
 }
 
 wstring Application::ToString() {
+	IsStillValid();
 	if (!valid) {
 		return L"Invalid Application Window! \n";
 	}
@@ -150,19 +158,27 @@ void Application::PrintApplicaiton() {
 	wcout << ToString() << endl;
 }
 
-//bool Application::CheckValid() const {
-//	__try {
-//		DWORD dwProcId = 0;
-//		TCHAR cstrPath[MAX_PATH];
-//		GetWindowThreadProcessId(hwnd, &dwProcId);
-//		HANDLE hProc = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, dwProcId);
-//		GetModuleFileNameEx(hProc, NULL, cstrPath, MAX_PATH);
-//		wstring temp(cstrPath);
-//		if (temp == windowModulePath) {
-//			return true;
-//		}
-//	} __finally {
-//		return false;
-//	}
-//}
+bool Application::IsStillValid() {
+	CheckValid();
+	return valid;
+}
+
+void Application::CheckValid() {
+	__try {
+		CheckValidHelper();
+	} __except (EXCEPTION_EXECUTE_HANDLER) 	{
+		wcout << "Closed or bad Window" << endl;
+		valid = false;
+	}
+}
+
+void Application::CheckValidHelper() {
+	Application temp(hwnd);
+	if (!temp.IsValid()) {
+		valid = false;
+	} else if (temp.GetWindowModulePath() != windowModulePath) {
+		valid = false;
+	}
+}
+
 

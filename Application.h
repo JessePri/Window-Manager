@@ -21,6 +21,10 @@ private:
 
 	bool valid;
 
+	void CheckValid();
+	void CheckValidHelper();
+	static Application toCompare;
+	
 public:
 	/* Constructors */
 
@@ -38,8 +42,13 @@ public:
 	const UINT& GetPastFlag() const;
 	const std::wstring& GetWindowModulePath() const;
 	bool IsValid() const;	
-	bool CheckValid() const;
+	
 	/* Methods */
+
+	bool IsStillValid();
+
+	// Used to validate each application
+
 
 	// Wrapper Method for SetWindowPos(...)
 	void SetPosition(int x, int y, int cx, int cy, UINT flags);
@@ -53,5 +62,6 @@ public:
 	std::wstring ToString();
 
 	void PrintApplicaiton();
+
 };
 
