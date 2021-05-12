@@ -23,7 +23,6 @@ private:
 
 	void CheckValid();
 	void CheckValidHelper();
-	static Application toCompare;
 	
 public:
 	/* Constructors */

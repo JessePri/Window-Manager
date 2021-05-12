@@ -135,7 +135,9 @@ void AppManager::RunProfile(unsigned int index) {
 
 void AppManager::RunInstruction(const AppManager::Profile::MoveInstruction& instruction) {
 	auto iter = windowedApps.find(instruction.filePath);
-	if (iter == windowedApps.end() || instruction.appIndex >= iter->second.size()) {
+	if (iter == windowedApps.end()
+		|| instruction.appIndex >= iter->second.size()
+		|| !iter->second[instruction.appIndex].IsStillValid()) {
 		wcout << "Invalid instruction!" << endl;	// This is incomplete error handling
 		return;
 	}
