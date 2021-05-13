@@ -38,7 +38,6 @@ void AppManager::GetAllWindowedApplications() {
 	EnumWindows(WindowConstructor, ignored);
 }
 
-// Needs to be modified
 BOOL AppManager::WindowConstructor(_In_ HWND hwnd, LPARAM IGNORED) {
 	Application app(hwnd);
 	if (!app.IsValid()) {
@@ -53,7 +52,7 @@ BOOL AppManager::WindowConstructor(_In_ HWND hwnd, LPARAM IGNORED) {
 		windowedApps.emplace(key, std::move(temp));
 	} else {
 		wstring key = app.GetWindowModulePath();
-		windowedApps[key].emplace(constructionIndexes[key], std::move(app));
+		windowedApps[key].emplace(++constructionIndexes[key], std::move(app));
 	}
 	return true;
 }
@@ -141,13 +140,6 @@ void AppManager::RunProfile(unsigned int index) {
 void AppManager::RunInstruction(const AppManager::Profile::MoveInstruction& instruction) {
 	WinMap::iterator iter = windowedApps.find(instruction.filePath);
 	unordered_map<unsigned int, Application>::iterator appIter;
-	//if (iter == windowedApps.end()
-	//	|| windowedApps[instruction.filePath].find(instruction.appIndex) == windowedApps[instruction.filePath].end()
-	//	|| windowedApps[instruction.filePath].find(instruction.appIndex)->second.IsStillValid()) {
-	//	wcout << "Invalid instruction!" << endl;	// This is incomplete error handling
-	//	return;
-	//}
-	
 	if (iter != windowedApps.end()) {
 		appIter = iter->second.find(instruction.appIndex);
 		if (appIter == iter->second.end() || !appIter->second.IsStillValid()) {
@@ -157,13 +149,7 @@ void AppManager::RunInstruction(const AppManager::Profile::MoveInstruction& inst
 	} else {
 		wcout << "Invalid instruction!" << endl;
 		return;
-	}
-	//wcout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << endl;
-	//wcout << instruction.ToString() << endl;
-	//iter->second.find(ins.PrintApplicaiton();
-	//wcout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << endl;
-	//iter->second[instruction.appIndex].SetPosition
-	//(instruction.x, instruction.y, instruction.cx, instruction.cy, SWP_ASYNCWINDOWPOS);
+	} 
 	wcout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << endl;
 	wcout << instruction.ToString() << endl;
 	appIter->second.PrintApplicaiton();
