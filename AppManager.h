@@ -10,7 +10,7 @@
 
 class AppManager {
 public:
-	typedef std::unordered_map<std::wstring, std::vector<Application>> WinMap;
+	typedef std::unordered_map<std::wstring, std::unordered_map<unsigned int,Application>> WinMap;
 private:
 	class Profile {
 	private:
@@ -55,7 +55,6 @@ private:
 		Profile() = delete;
 		Profile(std::wifstream& constrainedFile, bool constrained);
 		std::wstring ToString();
-		//ReadProfileAdvanced(std::ifstream& constrainedFile);
 	};
 
 	static void RunInstruction(const Profile::MoveInstruction& instruction);
@@ -69,7 +68,7 @@ private:
 	static WinMap windowedApps;
 	static std::vector<Profile> profiles;
 	static MONITORINFO monitorInfo;
-
+	static std::unordered_map <std::wstring, unsigned int> constructionIndexes;
 public:
 
 	// Backend Initializer
@@ -113,5 +112,6 @@ public:
 
 	static void PrintProfiles();
 
+	
 };
 

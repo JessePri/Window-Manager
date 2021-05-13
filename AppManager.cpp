@@ -8,6 +8,7 @@
 #include <fstream>
 #include <iostream>
 #include <exception>
+#include <unordered_map>
 
 using std::wstring;
 using std::wifstream;
@@ -19,10 +20,12 @@ using std::endl;
 using std::to_wstring;
 using std::cout;
 using std::exception;
+using std::unordered_map;
 
 
 vector<AppManager::Profile> AppManager::profiles;
 AppManager::WinMap AppManager::windowedApps;
+unordered_map<wstring, unsigned int> AppManager::constructionIndexes;
 
 void AppManager::Initialize() {
 	GetAllWindowedApplications();
@@ -43,12 +46,14 @@ BOOL AppManager::WindowConstructor(_In_ HWND hwnd, LPARAM IGNORED) {
 	}
 	auto iter = windowedApps.find(app.GetWindowModulePath());
 	if (iter == windowedApps.end()) {
-		vector<Application> temp;
-		temp.push_back(std::move(app));
-		wstring key = temp[0].GetWindowModulePath();
+		constructionIndexes.emplace(app.GetWindowModulePath(), 0);
+		unordered_map<unsigned int, Application> temp;
+		wstring key = app.GetWindowModulePath();
+		temp.emplace(0, std::move(app));
 		windowedApps.emplace(key, std::move(temp));
 	} else {
-		iter->second.emplace_back(std::move(app));
+		wstring key = app.GetWindowModulePath();
+		windowedApps[key].emplace(constructionIndexes[key], std::move(app));
 	}
 	return true;
 }
@@ -134,18 +139,36 @@ void AppManager::RunProfile(unsigned int index) {
 }
 
 void AppManager::RunInstruction(const AppManager::Profile::MoveInstruction& instruction) {
-	auto iter = windowedApps.find(instruction.filePath);
-	if (iter == windowedApps.end()
-		|| instruction.appIndex >= iter->second.size()
-		|| !iter->second[instruction.appIndex].IsStillValid()) {
-		wcout << "Invalid instruction!" << endl;	// This is incomplete error handling
+	WinMap::iterator iter = windowedApps.find(instruction.filePath);
+	unordered_map<unsigned int, Application>::iterator appIter;
+	//if (iter == windowedApps.end()
+	//	|| windowedApps[instruction.filePath].find(instruction.appIndex) == windowedApps[instruction.filePath].end()
+	//	|| windowedApps[instruction.filePath].find(instruction.appIndex)->second.IsStillValid()) {
+	//	wcout << "Invalid instruction!" << endl;	// This is incomplete error handling
+	//	return;
+	//}
+	
+	if (iter != windowedApps.end()) {
+		appIter = iter->second.find(instruction.appIndex);
+		if (appIter == iter->second.end() || !appIter->second.IsStillValid()) {
+			wcout << "Invalid instruction!" << endl;
+			return;
+		}
+	} else {
+		wcout << "Invalid instruction!" << endl;
 		return;
 	}
+	//wcout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << endl;
+	//wcout << instruction.ToString() << endl;
+	//iter->second.find(ins.PrintApplicaiton();
+	//wcout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << endl;
+	//iter->second[instruction.appIndex].SetPosition
+	//(instruction.x, instruction.y, instruction.cx, instruction.cy, SWP_ASYNCWINDOWPOS);
 	wcout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << endl;
 	wcout << instruction.ToString() << endl;
-	iter->second[instruction.appIndex].PrintApplicaiton();
+	appIter->second.PrintApplicaiton();
 	wcout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << endl;
-	iter->second[instruction.appIndex].SetPosition
+	appIter->second.SetPosition
 	(instruction.x, instruction.y, instruction.cx, instruction.cy, SWP_ASYNCWINDOWPOS);
 }
 
@@ -153,8 +176,8 @@ void AppManager::PrintWindowedApps() {
 	for (auto& p : windowedApps) {
 		for (auto& a : p.second) {
 			wcout << L"/////////////////////////////////////////////" << endl;
-			cout << "HWND: " << a.GetHWND() << endl;
-			wcout << a.ToString() << endl;
+			cout << "HWND: " << a.second.GetHWND() << endl;
+			wcout << a.second.ToString() << endl;
 			wcout << L"/////////////////////////////////////////////" << endl;
 		}
 	}
