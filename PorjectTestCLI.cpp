@@ -31,7 +31,10 @@ int main()
 	AppManager::PrintProfiles();
 	cin.get();
 	AppManager::RunProfile(0);
-
+	cin.get();
+	AppManager::UpdateAllWindowedApplications();
+	cin.get();
+	AppManager::RunProfile(0);
 
 	//wcout << L"################################################################" << endl;
 	//wcout << L"################################################################" << endl;

@@ -11,6 +11,8 @@
 class AppManager {
 public:
 	typedef std::unordered_map<std::wstring, std::unordered_map<unsigned int,Application>> WinMap;
+	typedef std::unordered_map<HWND, std::pair<unsigned int, std::wstring>> HandleMap;
+	typedef std::unordered_map<std::wstring, unsigned int> UpdateMap;
 private:
 	class Profile {
 	private:
@@ -59,6 +61,9 @@ private:
 
 	static void RunInstruction(const Profile::MoveInstruction& instruction);
 
+	static BOOL CALLBACK WindowConstructor(_In_ HWND hwnd, LPARAM IGNORED);
+
+	static BOOL CALLBACK WindowUpdater(_In_ HWND hwnd, LPARAM IGNORED);
 	//static void CreateNewWindow(const AppManager::Profile::MoveInstruction& instruction);
 	//
 	//static BOOL CALLBACK FindNewValidWindow(_In_ HWND hwnd, LPARAM);
@@ -66,6 +71,8 @@ private:
 	//static std::wstring modulePathToCompare;
 
 	static WinMap windowedApps;
+	static HandleMap handleMap;
+	static UpdateMap updateMap;
 	static std::vector<Profile> profiles;
 	static MONITORINFO monitorInfo;
 	static std::unordered_map <std::wstring, unsigned int> constructionIndexes;
@@ -79,7 +86,10 @@ public:
 
 	
 	static void GetAllWindowedApplications();
-	static BOOL CALLBACK WindowConstructor(_In_ HWND hwnd, LPARAM IGNORED);
+
+	static void UpdateAllWindowedApplications();
+
+	
 
 	// File Readers
 
