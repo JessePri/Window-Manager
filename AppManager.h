@@ -6,6 +6,8 @@
 #include "Displays.h"
 #include <string>
 #include <fstream>
+#include <unordered_map>
+#include <unordered_set>
 
 
 class AppManager {
@@ -63,6 +65,8 @@ private:
 
 	static BOOL CALLBACK WindowConstructor(_In_ HWND hwnd, LPARAM IGNORED);
 
+	static void MarkWindowUpdates();
+
 	static BOOL CALLBACK WindowUpdater(_In_ HWND hwnd, LPARAM IGNORED);
 	//static void CreateNewWindow(const AppManager::Profile::MoveInstruction& instruction);
 	//
@@ -71,7 +75,7 @@ private:
 	//static std::wstring modulePathToCompare;
 
 	static WinMap windowedApps;
-	static HandleMap handleMap;
+	static std::unordered_set<HWND> handleSet;
 	static UpdateMap updateMap;
 	static std::vector<Profile> profiles;
 	static MONITORINFO monitorInfo;
