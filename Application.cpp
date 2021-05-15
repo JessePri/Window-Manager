@@ -100,7 +100,7 @@ void Application::SetPosition(int x, int y, int cx, int cy, UINT flags) {
 		ShowWindow(hwnd, SW_SHOWNORMAL);	// So far both of these ShowWindow statements resolve buggyness
 		SetWindowPos(hwnd, HWND_TOP, x, y, cx, cy, SWP_SHOWWINDOW | SWP_ASYNCWINDOWPOS | SWP_DRAWFRAME);// needs to change
 		SetForegroundWindow(hwnd);
-		ShowWindow(hwnd, SW_SHOWNORMAL);		// This could be used for the hide function
+		ShowWindow(hwnd, SW_SHOW);	// This could be used for the hide function
 	} catch (exception e) {
 	#ifdef APPLICATION_DEBUG
 		// Do some logging.
