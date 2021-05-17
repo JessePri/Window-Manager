@@ -14,9 +14,16 @@ using std::exception;
 using std::to_wstring;
 
 
+/* Things you will eventually need to fix (or not)
+*	- This doesn't really catch system exceptions you could
+*		1. Make part the code that reads and gets the proccess handle part of a
+*			__try __except with a helper fucntion to do the constructing 
+*		2. You could ignore this issue since EnumWindows is really fast so a user would have to run 
+*				the app then close a window imediatley for it to crash
+*/
 Application::Application(_In_ HWND winHandle) {
 	hwnd = winHandle;
-	try {
+	try {		
 		WINDOWINFO winfo;
 		GetWindowInfo(hwnd, &winfo);
 		x = winfo.rcWindow.left;
@@ -45,7 +52,7 @@ Application::Application(_In_ HWND winHandle) {
 	}
 }
 
-Application::Application(Application&& app) noexcept {
+Application::Application(Application&& app) noexcept {	
 	hwnd = app.hwnd;
 	x = std::move(app.x);
 	y = std::move(app.y);
@@ -89,12 +96,12 @@ const wstring& Application::GetWindowModulePath() const {
 }
 
 void Application::SetPosition(int x, int y, int cx, int cy, UINT flags) {
-	try {
+	try {	// NOTE: exception handlers here do nothing (keeping it just in case).
 		ShowWindow(hwnd, SW_SHOWNORMAL);	// So far both of these ShowWindow statements resolve buggyness
 		SetWindowPos(hwnd, HWND_TOP, x, y, cx, cy, SWP_SHOWWINDOW | SWP_ASYNCWINDOWPOS | SWP_DRAWFRAME);// needs to change
 		SetForegroundWindow(hwnd);
-		ShowWindow(hwnd, SW_SHOWNORMAL);		// This could be used for the hide function
-	} catch (exception e) {
+		ShowWindow(hwnd, SW_SHOW);	// This could be used for the hide function
+	} catch (exception e) {	
 	#ifdef APPLICATION_DEBUG
 		// Do some logging.
 	#endif
@@ -102,9 +109,11 @@ void Application::SetPosition(int x, int y, int cx, int cy, UINT flags) {
 		valid = false;
 		return;
 	}
-	
+
 }
 
+// This function is not yet used
+// We need to implement a hide all profiles function
 void Application::HideWindow() {
 	try {
 		SetWindowPos(hwnd, HWND_TOPMOST, x, y, width, depth, SWP_HIDEWINDOW);
@@ -132,6 +141,7 @@ Application& Application::operator=(Application&& app) noexcept {
 }
 
 wstring Application::ToString() {
+	IsStillValid();
 	if (!valid) {
 		return L"Invalid Application Window! \n";
 	}
@@ -150,19 +160,27 @@ void Application::PrintApplicaiton() {
 	wcout << ToString() << endl;
 }
 
-//bool Application::CheckValid() const {
-//	__try {
-//		DWORD dwProcId = 0;
-//		TCHAR cstrPath[MAX_PATH];
-//		GetWindowThreadProcessId(hwnd, &dwProcId);
-//		HANDLE hProc = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, dwProcId);
-//		GetModuleFileNameEx(hProc, NULL, cstrPath, MAX_PATH);
-//		wstring temp(cstrPath);
-//		if (temp == windowModulePath) {
-//			return true;
-//		}
-//	} __finally {
-//		return false;
-//	}
-//}
+bool Application::IsStillValid() {
+	CheckValid();
+	return valid;
+}
+
+void Application::CheckValid() {
+	__try {
+		CheckValidHelper();
+	} __except (EXCEPTION_EXECUTE_HANDLER) 	{
+		wcout << "Closed or bad Window" << endl;
+		valid = false;
+	}
+}
+
+void Application::CheckValidHelper() {
+	Application temp(hwnd);
+	if (!temp.IsValid()) {
+		valid = false;
+	} else if (temp.GetWindowModulePath() != windowModulePath) {
+		valid = false;
+	}
+}
+
 

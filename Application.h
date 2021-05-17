@@ -17,10 +17,13 @@ private:
 
 	UINT pastFlag;
 
-	std::wstring windowModulePath;
+	std::wstring windowModulePath;	// The .exe path of a Application
 
 	bool valid;
 
+	void CheckValid();
+	void CheckValidHelper();
+	
 public:
 	/* Constructors */
 
@@ -38,8 +41,14 @@ public:
 	const UINT& GetPastFlag() const;
 	const std::wstring& GetWindowModulePath() const;
 	bool IsValid() const;	
-	bool CheckValid() const;
+	
 	/* Methods */
+
+	// Used to validate each application after initialization 
+	bool IsStillValid();
+
+
+
 
 	// Wrapper Method for SetWindowPos(...)
 	void SetPosition(int x, int y, int cx, int cy, UINT flags);
@@ -53,5 +62,6 @@ public:
 	std::wstring ToString();
 
 	void PrintApplicaiton();
+
 };
 
