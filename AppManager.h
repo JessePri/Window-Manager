@@ -6,18 +6,23 @@
 #include "Displays.h"
 #include <string>
 #include <fstream>
+#include <unordered_map>
+#include <unordered_set>
+#include <queue>
 
 
 class AppManager {
 public:
-	typedef std::unordered_map<std::wstring, std::vector<Application>> WinMap;
+	typedef std::unordered_map<std::wstring, std::unordered_map<unsigned int,Application>> WinMap;	
+	typedef std::unordered_map<HWND, std::pair<unsigned int, std::wstring>> HandleMap;				
+	typedef std::unordered_map<std::wstring, std::priority_queue<unsigned int>> UpdateMap;	// Make second this a min que						
 private:
-	class Profile {
+	class Profile {		// Profile contains move instructions which are all run when a profile is run
 	private:
 		void ReadProfileConstrained(std::wifstream& constrainedFile);
 
 	public:
-		struct PreInstruction {
+		struct PreInstruction {		// Used to create a move instruction
 			std::wstring filePath = L"";
 			unsigned int appIndex = 0;
 			unsigned int displayID = 0;
@@ -29,7 +34,7 @@ private:
 			double widthY = 0;
 		};
 
-		struct MoveInstruction {
+		struct MoveInstruction {	// Used to set the position of a window
 			std::wstring filePath;
 			unsigned int appIndex;
 			int x;
@@ -55,10 +60,15 @@ private:
 		Profile() = delete;
 		Profile(std::wifstream& constrainedFile, bool constrained);
 		std::wstring ToString();
-		//ReadProfileAdvanced(std::ifstream& constrainedFile);
 	};
 
 	static void RunInstruction(const Profile::MoveInstruction& instruction);
+
+	static BOOL CALLBACK WindowConstructor(_In_ HWND hwnd, LPARAM IGNORED);
+
+	static void MarkWindowUpdates();
+
+	static BOOL CALLBACK WindowUpdater(_In_ HWND hwnd, LPARAM IGNORED);
 
 	//static void CreateNewWindow(const AppManager::Profile::MoveInstruction& instruction);
 	//
@@ -66,10 +76,12 @@ private:
 	//static Application newValidWindow;
 	//static std::wstring modulePathToCompare;
 
-	static WinMap windowedApps;
-	static std::vector<Profile> profiles;
-	static MONITORINFO monitorInfo;
-
+	static WinMap windowedApps;														// Stores all of the applications
+	static std::unordered_set<HWND> handleSet;										// Stores all of the valid handles
+	static UpdateMap updateMap;														// Stores stores indices of applications that need to be updated
+	static std::vector<Profile> profiles;											// Stores all profiles 
+	static MONITORINFO monitorInfo;													// Stores the info of a monitor
+	static std::unordered_map <std::wstring, unsigned int> constructionIndexes;		
 public:
 
 	// Backend Initializer
@@ -80,7 +92,10 @@ public:
 
 	
 	static void GetAllWindowedApplications();
-	static BOOL CALLBACK WindowConstructor(_In_ HWND hwnd, LPARAM IGNORED);
+
+	static void UpdateAllWindowedApplications();
+
+	
 
 	// File Readers
 
@@ -97,7 +112,6 @@ public:
 	*		- startY: The same as startX except vertical
 	*		- widthX: The amount of blocks that the window will take up going left to right
 	*		- widthY: The amount of blocks that the window will take up going left tor right
-	*		NOTE: A different file format will be used for custom profile that are more specifc than the above
 	*/			
 
 	static void ReadProfilesConstrained(const WCHAR* filePath);
@@ -113,5 +127,6 @@ public:
 
 	static void PrintProfiles();
 
+	
 };
 

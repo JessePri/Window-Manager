@@ -23,7 +23,7 @@ using std::to_wstring;
 */
 Application::Application(_In_ HWND winHandle) {
 	hwnd = winHandle;
-	try {
+	try {		
 		WINDOWINFO winfo;
 		GetWindowInfo(hwnd, &winfo);
 		x = winfo.rcWindow.left;
@@ -52,7 +52,7 @@ Application::Application(_In_ HWND winHandle) {
 	}
 }
 
-Application::Application(Application&& app) noexcept {
+Application::Application(Application&& app) noexcept {	
 	hwnd = app.hwnd;
 	x = std::move(app.x);
 	y = std::move(app.y);
@@ -96,12 +96,12 @@ const wstring& Application::GetWindowModulePath() const {
 }
 
 void Application::SetPosition(int x, int y, int cx, int cy, UINT flags) {
-	try {
+	try {	// NOTE: exception handlers here do nothing (keeping it just in case).
 		ShowWindow(hwnd, SW_SHOWNORMAL);	// So far both of these ShowWindow statements resolve buggyness
 		SetWindowPos(hwnd, HWND_TOP, x, y, cx, cy, SWP_SHOWWINDOW | SWP_ASYNCWINDOWPOS | SWP_DRAWFRAME);// needs to change
 		SetForegroundWindow(hwnd);
-		ShowWindow(hwnd, SW_SHOWNORMAL);		// This could be used for the hide function
-	} catch (exception e) {
+		ShowWindow(hwnd, SW_SHOW);	// This could be used for the hide function
+	} catch (exception e) {	
 	#ifdef APPLICATION_DEBUG
 		// Do some logging.
 	#endif
@@ -112,6 +112,8 @@ void Application::SetPosition(int x, int y, int cx, int cy, UINT flags) {
 
 }
 
+// This function is not yet used
+// We need to implement a hide all profiles function
 void Application::HideWindow() {
 	try {
 		SetWindowPos(hwnd, HWND_TOPMOST, x, y, width, depth, SWP_HIDEWINDOW);
