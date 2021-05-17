@@ -108,13 +108,9 @@ BOOL AppManager::WindowUpdater(_In_ HWND hwnd, LPARAM) {
 	if (!app.IsValid()) {		// Is the app it self valid (can we access it and is it an actual window?)
 		return true;
 	} else if (!(handleSet.find(hwnd) == handleSet.end())) {
-		cout << "HIT1" << endl;
 		app.PrintApplicaiton();
 		return true;
 	} else if (updateIter != updateMap.end()) {		// Was it previously identified as invalid? Then replace it with this new one.
-		cout << "HIT2" << endl;
-		app.PrintApplicaiton();
-		wcout << "Index: " << updateIter->second.top() << endl;
 		auto tempIter = iter->second.find(updateIter->second.top());
 		if (tempIter == iter->second.end()) {
 			return true;
@@ -123,8 +119,6 @@ BOOL AppManager::WindowUpdater(_In_ HWND hwnd, LPARAM) {
 		handleSet.emplace(hwnd);
 		updateIter->second.pop();
 	} else if (iter == windowedApps.end()) {		// This if statement checks if the app is infact completely new app and a new type of app
-		cout << "HIT3" << endl;
-		app.PrintApplicaiton();
 		handleSet.emplace(hwnd);
 		constructionIndexes.emplace(app.GetWindowModulePath(), 0);
 		unordered_map<unsigned int, Application> temp;
@@ -132,8 +126,6 @@ BOOL AppManager::WindowUpdater(_In_ HWND hwnd, LPARAM) {
 		temp.emplace(0, std::move(app));
 		windowedApps.emplace(key, std::move(temp));
 	} else {
-		cout << "HIT3" << endl;
-		app.PrintApplicaiton();
 		handleSet.emplace(hwnd);
 		wstring key = app.GetWindowModulePath();
 		iter->second.emplace(++constructionIndexes[key], std::move(app));	// NOTE: not updating this may cause issues 
