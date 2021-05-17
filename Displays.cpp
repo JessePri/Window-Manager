@@ -15,6 +15,7 @@ using std::to_wstring;
 
 vector<Displays::Display> Displays::displays;
 
+// Finds all the displays (not tested for more than one display currently)
 void Displays::Initialize() {
 	MONITORENUMPROC p = FindMonitor;
 	LPARAM toIgnore = 0;

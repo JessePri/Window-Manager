@@ -17,7 +17,7 @@ private:
 
 	UINT pastFlag;
 
-	std::wstring windowModulePath;
+	std::wstring windowModulePath;	// The .exe path of a Application
 
 	bool valid;
 
@@ -44,9 +44,10 @@ public:
 	
 	/* Methods */
 
+	// Used to validate each application after initialization 
 	bool IsStillValid();
 
-	// Used to validate each application
+
 
 
 	// Wrapper Method for SetWindowPos(...)
