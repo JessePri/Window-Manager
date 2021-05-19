@@ -221,7 +221,7 @@ void AppManager::RunInstruction(const AppManager::Profile::MoveInstruction& inst
 		appIter = iter->second.find(instruction.appIndex);
 		if (appIter == iter->second.end() || !appIter->second.IsStillValid()) {	//	Checks if this the app is invalid either in index or it was closed
 			handleSet.erase(appIter->second.GetHWND());							//	For the future we may need to add SEH here
-			iter->second.erase(instruction.appIndex);
+			//iter->second.erase(instruction.appIndex);
 			wcout << "Invalid instruction!" << endl;
 			return;
 		}

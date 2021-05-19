@@ -144,6 +144,7 @@
     <ClCompile Include="Displays.cpp" />
     <ClCompile Include="PorjectTestCLI.cpp" />
     <ClCompile Include="ProcessInfo.cpp" />
+    <ClCompile Include="Start.cpp" />
     <ClCompile Include="WinHWNDPrinter.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -151,6 +152,7 @@
     <ClInclude Include="Application.h" />
     <ClInclude Include="Displays.h" />
     <ClInclude Include="ProcessInfo.h" />
+    <ClInclude Include="Start.h" />
     <ClInclude Include="WinHWNDPrinter.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
