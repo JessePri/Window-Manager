@@ -208,6 +208,10 @@ void AppManager::Profile::ReadProfileConstrained(wifstream& input) {
 }
 
 void AppManager::RunProfile(unsigned int index) {
+	if (index >= profiles.size()) {
+		wcout << "Invalid Profile" << endl;
+		return;
+	}
 	for (AppManager::Profile::MoveInstruction instruction : profiles[index].instructions) {
 		wcout << "Attempting to RunInstruction" << endl;
 		RunInstruction(instruction);
