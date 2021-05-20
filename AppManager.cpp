@@ -65,7 +65,7 @@ void AppManager::MarkWindowUpdates() {
 				handleSet.erase(p2.second.GetHWND());
 				UpdateMap::iterator updateIter = updateMap.find(p2.second.GetWindowModulePath());
 				if (updateIter == updateMap.end()) {
-					priority_queue<unsigned int> temp;
+					priority_queue<unsigned int, std::vector<unsigned int>, std::greater<unsigned int>> temp;
 					temp.push(p2.first);
 					updateMap.emplace(p2.second.GetWindowModulePath(), std::move(temp));
 				} else {
@@ -113,6 +113,8 @@ BOOL AppManager::WindowUpdater(_In_ HWND hwnd, LPARAM) {
 	} else if (updateIter != updateMap.end()) {		// Was it previously identified as invalid? Then replace it with this new one.
 		auto tempIter = iter->second.find(updateIter->second.top());
 		if (tempIter == iter->second.end()) {
+			wcout << "HIT" << endl;
+			//updateIter->second.pop();
 			return true;
 		}
 		tempIter->second = std::move(app);		// This needs to be changed

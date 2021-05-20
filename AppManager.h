@@ -15,7 +15,7 @@ class AppManager {
 public:
 	typedef std::unordered_map<std::wstring, std::unordered_map<unsigned int,Application>> WinMap;	
 	typedef std::unordered_map<HWND, std::pair<unsigned int, std::wstring>> HandleMap;				
-	typedef std::unordered_map<std::wstring, std::priority_queue<unsigned int>> UpdateMap;	// Make second this a min que						
+	typedef std::unordered_map<std::wstring, std::priority_queue<unsigned int, std::vector<unsigned int>, std::greater<unsigned int>>> UpdateMap;	// Make second this a min que						
 private:
 	class Profile {		// Profile contains move instructions which are all run when a profile is run
 	private:
