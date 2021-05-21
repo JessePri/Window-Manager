@@ -65,7 +65,7 @@ void AppManager::MarkWindowUpdates() {
 				handleSet.erase(p2.second.GetHWND());
 				UpdateMap::iterator updateIter = updateMap.find(p2.second.GetWindowModulePath());
 				if (updateIter == updateMap.end()) {
-					priority_queue<unsigned int> temp;
+					priority_queue<unsigned int, std::vector<unsigned int>, std::greater<unsigned int>> temp;
 					temp.push(p2.first);
 					updateMap.emplace(p2.second.GetWindowModulePath(), std::move(temp));
 				} else {
@@ -113,6 +113,8 @@ BOOL AppManager::WindowUpdater(_In_ HWND hwnd, LPARAM) {
 	} else if (updateIter != updateMap.end()) {		// Was it previously identified as invalid? Then replace it with this new one.
 		auto tempIter = iter->second.find(updateIter->second.top());
 		if (tempIter == iter->second.end()) {
+			wcout << "HIT" << endl;
+			//updateIter->second.pop();
 			return true;
 		}
 		tempIter->second = std::move(app);		// This needs to be changed
@@ -126,6 +128,7 @@ BOOL AppManager::WindowUpdater(_In_ HWND hwnd, LPARAM) {
 		temp.emplace(0, std::move(app));
 		windowedApps.emplace(key, std::move(temp));
 	} else {
+		cout << hwnd << endl;
 		handleSet.emplace(hwnd);
 		wstring key = app.GetWindowModulePath();
 		iter->second.emplace(++constructionIndexes[key], std::move(app));	// NOTE: not updating this may cause issues 
@@ -208,6 +211,10 @@ void AppManager::Profile::ReadProfileConstrained(wifstream& input) {
 }
 
 void AppManager::RunProfile(unsigned int index) {
+	if (index >= profiles.size()) {
+		wcout << "Invalid Profile" << endl;
+		return;
+	}
 	for (AppManager::Profile::MoveInstruction instruction : profiles[index].instructions) {
 		wcout << "Attempting to RunInstruction" << endl;
 		RunInstruction(instruction);
@@ -221,7 +228,7 @@ void AppManager::RunInstruction(const AppManager::Profile::MoveInstruction& inst
 		appIter = iter->second.find(instruction.appIndex);
 		if (appIter == iter->second.end() || !appIter->second.IsStillValid()) {	//	Checks if this the app is invalid either in index or it was closed
 			handleSet.erase(appIter->second.GetHWND());							//	For the future we may need to add SEH here
-			iter->second.erase(instruction.appIndex);
+			//iter->second.erase(instruction.appIndex);
 			wcout << "Invalid instruction!" << endl;
 			return;
 		}
