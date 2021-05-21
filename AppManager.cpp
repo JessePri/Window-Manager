@@ -128,6 +128,7 @@ BOOL AppManager::WindowUpdater(_In_ HWND hwnd, LPARAM) {
 		temp.emplace(0, std::move(app));
 		windowedApps.emplace(key, std::move(temp));
 	} else {
+		cout << hwnd << endl;
 		handleSet.emplace(hwnd);
 		wstring key = app.GetWindowModulePath();
 		iter->second.emplace(++constructionIndexes[key], std::move(app));	// NOTE: not updating this may cause issues 
