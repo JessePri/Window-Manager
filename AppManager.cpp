@@ -12,6 +12,7 @@
 #include <queue>
 
 
+using std::queue;
 using std::wstring;
 using std::wifstream;
 using std::vector;
@@ -30,9 +31,10 @@ using std::priority_queue;
 
 AppManager::UpdateMap AppManager::updateMap;
 unordered_set<HWND> AppManager::handleSet;
-vector<AppManager::Profile> AppManager::profiles;
+AppManager::ModeMap AppManager::modes;
 AppManager::WinMap AppManager::windowedApps;
 unordered_map<wstring, unsigned int> AppManager::constructionIndexes;
+wstring AppManager::currentMode;
 
 // Gets the state of the computer
 void AppManager::Initialize() {
@@ -141,10 +143,25 @@ const AppManager::WinMap& AppManager::GetWindowedApps() {
 }
 
 void AppManager::ReadProfilesConstrained(const WCHAR* filePath) {
+	queue<pair<wstring, unsigned int>> modeAndProfileCounts;
 	wifstream input(filePath);
+	int count = -1;
 	if (input.is_open()) {
+		getline(input, currentMode);
+		ReadModeData(input, modeAndProfileCounts);
 		while (!input.eof()) {
-			profiles.emplace_back(input, true);
+			if (count == -1) {
+				vector<Profile> temp;
+				modes.emplace(modeAndProfileCounts.front().first, std::move(temp));
+				++count;
+			}
+			Profile toInsert(input, true);
+			modes[modeAndProfileCounts.front().first].push_back(std::move(toInsert));
+			++count;
+			if (count > modeAndProfileCounts.front().second) {
+				modeAndProfileCounts.pop();
+				break;
+			}
 		}
 	} else {
 		wcout << "FILE NOT OPEN" << endl;
@@ -152,10 +169,25 @@ void AppManager::ReadProfilesConstrained(const WCHAR* filePath) {
 	}
 }
 
+void AppManager::ReadModeData(wifstream& input, queue<pair<wstring, unsigned int>>& modeAndProfileCounts) {
+	wstring temp;
+	wstring mode;
+	unsigned int count = 0;
+	while (getline(input, temp)) {
+		if (temp == L"END") {
+			break;
+		} else if (count == 0) {
+			mode = temp;
+		} else if (count == 1) {
+			modeAndProfileCounts.emplace(mode, stoi(temp));
+			count = 0;
+		}
+		++count;
+	}
+}
+
 
 AppManager::Profile::Profile(wifstream& input, bool constrained) {
-	// The boolean will be used when the Advanced Profiles are implemented
-	// For now it should be ignored
 	ReadProfileConstrained(input);
 }
 
@@ -211,11 +243,11 @@ void AppManager::Profile::ReadProfileConstrained(wifstream& input) {
 }
 
 void AppManager::RunProfile(unsigned int index) {
-	if (index >= profiles.size()) {
+	if (index >= modes[currentMode].size()) {
 		wcout << "Invalid Profile" << endl;
 		return;
 	}
-	for (AppManager::Profile::MoveInstruction instruction : profiles[index].instructions) {
+	for (AppManager::Profile::MoveInstruction instruction : modes[currentMode][index].instructions) {
 		wcout << "Attempting to RunInstruction" << endl;
 		RunInstruction(instruction);
 	}
@@ -283,7 +315,7 @@ wstring AppManager::Profile::ToString() {
 
 void AppManager::PrintProfiles() {
 	unsigned int count = 0;
-	for (Profile profile : profiles) {
+	for (Profile profile : modes[currentMode]) {
 		wcout << "#############################################" << endl;
 		wcout << profile.ToString() << endl;
 		wcout << "#############################################" << endl;

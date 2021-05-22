@@ -13,10 +13,15 @@
 
 class AppManager {
 public:
-	typedef std::unordered_map<std::wstring, std::unordered_map<unsigned int,Application>> WinMap;	
-	typedef std::unordered_map<HWND, std::pair<unsigned int, std::wstring>> HandleMap;				
-	typedef std::unordered_map<std::wstring, std::priority_queue<unsigned int, std::vector<unsigned int>, std::greater<unsigned int>>> UpdateMap;	// Make second this a min que						
-private:
+	class Profile;
+
+	typedef std::unordered_map<std::wstring, std::unordered_map<unsigned int, Application>> WinMap;
+	typedef std::unordered_map<std::wstring, std::vector<Profile>> ModeMap;
+	typedef std::unordered_map<HWND, std::pair<unsigned int, std::wstring>> HandleMap;
+	typedef std::unordered_map<std::wstring,
+		std::priority_queue<unsigned int, std::vector<unsigned int>,
+		std::greater<unsigned int>>> UpdateMap;
+
 	class Profile {		// Profile contains move instructions which are all run when a profile is run
 	private:
 		void ReadProfileConstrained(std::wifstream& constrainedFile);
@@ -54,13 +59,61 @@ private:
 			std::wstring ToString() const;
 		};
 
-		
+
 
 		std::vector<MoveInstruction> instructions;
 		Profile() = delete;
 		Profile(std::wifstream& constrainedFile, bool constrained);
 		std::wstring ToString();
 	};
+
+	// Backend Initializer
+	static void Initialize();
+
+	// Initialiser Helpers
+
+
+
+	static void GetAllWindowedApplications();
+
+	static void UpdateAllWindowedApplications();
+
+
+
+	// File Readers
+
+	/* Constrained File Format:
+	*	- So far the file format will support halfs, thirds and fourths
+	*	- The file format for each process which is to be loaded at the start of the front end would be as follows
+	*		- exePath: The path of the exe of the application (the user should give us this in the GUI application)
+	*		- identifier: The number of the app (identifies two seperate apps)
+	*		- display identifier: The index of the display inside of displays
+	*		- totalX: The total amount of X divisions of the screen for which the movement in based on
+	*		- totalY: Same as above except vertical
+	*		- startX: The left most starting border of the window
+	*			- EX: The window being split into fourths would have the following starts	|0	|1	|2	|3	|
+	*		- startY: The same as startX except vertical
+	*		- widthX: The amount of blocks that the window will take up going left to right
+	*		- widthY: The amount of blocks that the window will take up going left tor right
+	*/
+
+	static void ReadProfilesConstrained(const WCHAR* filePath);
+
+
+	const WinMap& GetWindowedApps();
+
+	static void  RunProfile(unsigned int index);
+
+	static void  PrintWindowedApps();
+
+	static void PrintSizeOfWindowedApps();
+
+	static void PrintProfiles();
+
+private:
+	
+
+	static void ReadModeData(std::wifstream&, std::queue<std::pair<std::wstring, unsigned int>>&);
 
 	static void RunInstruction(const Profile::MoveInstruction& instruction);
 
@@ -76,57 +129,16 @@ private:
 	//static Application newValidWindow;
 	//static std::wstring modulePathToCompare;
 
+
+	
+
+
 	static WinMap windowedApps;														// Stores all of the applications
 	static std::unordered_set<HWND> handleSet;										// Stores all of the valid handles
 	static UpdateMap updateMap;														// Stores stores indices of applications that need to be updated
-	static std::vector<Profile> profiles;											// Stores all profiles 
+	static ModeMap modes;											// Stores all profiles associated with their modes
 	static MONITORINFO monitorInfo;													// Stores the info of a monitor
-	static std::unordered_map <std::wstring, unsigned int> constructionIndexes;		
-public:
-
-	// Backend Initializer
-	static void Initialize();
-
-	// Initialiser Helpers
-
-
-	
-	static void GetAllWindowedApplications();
-
-	static void UpdateAllWindowedApplications();
-
-	
-
-	// File Readers
-
-	/* Constrained File Format:
-	*	- So far the file format will support halfs, thirds and fourths 
-	*	- The file format for each process which is to be loaded at the start of the front end would be as follows
-	*		- exePath: The path of the exe of the application (the user should give us this in the GUI application)
-	*		- identifier: The number of the app (identifies two seperate apps)
-	*		- display identifier: The index of the display inside of displays
-	*		- totalX: The total amount of X divisions of the screen for which the movement in based on
-	*		- totalY: Same as above except vertical
-	*		- startX: The left most starting border of the window
-	*			- EX: The window being split into fourths would have the following starts	|0	|1	|2	|3	| 
-	*		- startY: The same as startX except vertical
-	*		- widthX: The amount of blocks that the window will take up going left to right
-	*		- widthY: The amount of blocks that the window will take up going left tor right
-	*/			
-
-	static void ReadProfilesConstrained(const WCHAR* filePath);
-
-
-	const WinMap& GetWindowedApps();
-
-	static void  RunProfile(unsigned int index);
-	
-	static void  PrintWindowedApps();
-
-	static void PrintSizeOfWindowedApps();
-
-	static void PrintProfiles();
-
-	
+	static std::unordered_map <std::wstring, unsigned int> constructionIndexes;
+	static std::wstring currentMode;
 };
 
