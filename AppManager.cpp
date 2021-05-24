@@ -73,7 +73,7 @@ void AppManager::MarkWindowUpdates() {
 				} else {
 					updateIter->second.push(p2.first);
 				}
-			}											
+			}
 		}
 	}
 }
@@ -256,24 +256,14 @@ void AppManager::RunProfile(unsigned int index) {
 void AppManager::RunInstruction(const AppManager::Profile::MoveInstruction& instruction) {
 	WinMap::iterator iter = windowedApps.find(instruction.filePath);
 	unordered_map<unsigned int, Application>::iterator appIter;
-	if (iter != windowedApps.end()) {	// Checks if the an app of that type exists 
-		appIter = iter->second.find(instruction.appIndex);
-		if (appIter == iter->second.end() || !appIter->second.IsStillValid()) {	//	Checks if this the app is invalid either in index or it was closed
-			handleSet.erase(appIter->second.GetHWND());							//	For the future we may need to add SEH here
-			//iter->second.erase(instruction.appIndex);
-			wcout << "Invalid instruction!" << endl;
-			return;
-		}
-	} else {
-		wcout << "Invalid instruction!" << endl;
-		return;
+	if (CheckValidInstruction(instruction, appIter)) {
+		wcout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << endl;
+		wcout << instruction.ToString() << endl;
+		appIter->second.PrintApplicaiton();
+		wcout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << endl;
+		appIter->second.SetPosition
+		(instruction.x, instruction.y, instruction.cx, instruction.cy, SWP_ASYNCWINDOWPOS);
 	}
-	wcout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << endl;
-	wcout << instruction.ToString() << endl;
-	appIter->second.PrintApplicaiton();
-	wcout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << endl;
-	appIter->second.SetPosition
-	(instruction.x, instruction.y, instruction.cx, instruction.cy, SWP_ASYNCWINDOWPOS);
 }
 
 void AppManager::PrintWindowedApps() {
@@ -348,6 +338,38 @@ AppManager::Profile::MoveInstruction::MoveInstruction(const PreInstruction& preI
 		++cy;
 	}
 }
+
+void AppManager::ClearProfiles() {
+	for (const Profile& p : modes[currentMode]) {
+		ClearProfile(p);
+	}
+}
+
+void AppManager::ClearProfile(const Profile& profile) {
+	unordered_map<unsigned int, Application>::iterator appIter;
+	for (const Profile::MoveInstruction& instruction : profile.instructions) {
+		if (CheckValidInstruction(instruction, appIter)) {
+			appIter->second.MinimizeApplication();
+		}
+	}
+}
+
+bool AppManager::CheckValidInstruction(const Profile::MoveInstruction& instruction, unordered_map<unsigned int, Application>::iterator& toReturn) {
+	WinMap::iterator iter = windowedApps.find(instruction.filePath);
+	if (iter != windowedApps.end()) {	// Checks if the an app of that type exists 
+		toReturn = iter->second.find(instruction.appIndex);
+		if (toReturn == iter->second.end() || !toReturn->second.IsStillValid()) {	//	Checks if this the app is invalid either in index or it was closed
+			handleSet.erase(toReturn->second.GetHWND());							//	For the future we may need to add SEH here
+			wcout << "Invalid instruction!" << endl;
+			return false;
+		}
+	} else {
+		wcout << "Invalid instruction!" << endl;
+		return false;
+	}
+	return true;
+}
+
 
 // Bad code....
 

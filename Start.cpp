@@ -39,7 +39,9 @@ void Start::StartManager() {
 			wcout << "HOT KEY PRESSED" << endl;
 			wcout << msg.wParam << endl;
 			wcout << "---------------------------------------------" << endl;
-			if (msg.wParam > 100) {
+			if (msg.wParam > 1000) {
+				AppManager::ClearProfiles();
+			} else if (msg.wParam > 100) {
 				unsigned int profileIndex = msg.wParam - 100;
 				// Launch Profile according to the profile index
 				// Run the profile

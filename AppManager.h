@@ -110,8 +110,11 @@ public:
 
 	static void PrintProfiles();
 
+	static void ClearProfiles();
+
 private:
 	
+	static void ClearProfile(const Profile& profile);
 
 	static void ReadModeData(std::wifstream&, std::queue<std::pair<std::wstring, unsigned int>>&);
 
@@ -122,6 +125,8 @@ private:
 	static void MarkWindowUpdates();
 
 	static BOOL CALLBACK WindowUpdater(_In_ HWND hwnd, LPARAM IGNORED);
+
+	static bool CheckValidInstruction(const Profile::MoveInstruction& instruction, std::unordered_map<unsigned int, Application>::iterator& toReturn);
 
 	//static void CreateNewWindow(const AppManager::Profile::MoveInstruction& instruction);
 	//
