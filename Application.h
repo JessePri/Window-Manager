@@ -53,10 +53,9 @@ public:
 	// Wrapper Method for SetWindowPos(...)
 	void SetPosition(int x, int y, int cx, int cy, UINT flags);
 
-	Application& operator=(Application&& app) noexcept;
+	void MinimizeApplication() const;
 
-	// Hides The Window
-	void HideWindow();
+	Application& operator=(Application&& app) noexcept;
 
 	//To String Method
 	std::wstring ToString();

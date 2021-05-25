@@ -1,3 +1,7 @@
+Chrome
+Chrome
+4
+END
 C:\Program Files (x86)\Google\Chrome\Application\chrome.exe
 0
 0
@@ -47,6 +51,25 @@ C:\Program Files (x86)\Google\Chrome\Application\chrome.exe
 1
 C:\Program Files (x86)\Google\Chrome\Application\chrome.exe
 3
+0
+2
+1
+0
+0
+1
+1
+END
+C:\Program Files (x86)\Google\Chrome\Application\chrome.exe
+4
+0
+2
+1
+1
+0
+1
+1
+C:\Program Files (x86)\Google\Chrome\Application\chrome.exe
+5
 0
 2
 1

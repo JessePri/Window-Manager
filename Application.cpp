@@ -112,20 +112,11 @@ void Application::SetPosition(int x, int y, int cx, int cy, UINT flags) {
 
 }
 
-// This function is not yet used
-// We need to implement a hide all profiles function
-void Application::HideWindow() {
-	try {
-		SetWindowPos(hwnd, HWND_TOPMOST, x, y, width, depth, SWP_HIDEWINDOW);
-	} catch (exception e) {
-	#ifdef APPLICATION_DEBUG
-		// Do some logging.
-	#endif
-		valid = false;
-		return;
-	}
+void Application::MinimizeApplication() const {
+	ShowWindow(hwnd, SW_MINIMIZE);
 }
 
+// We need to implement a hide all profiles function
 Application& Application::operator=(Application&& app) noexcept {
 	if (this != &app) {
 		hwnd = app.hwnd;
@@ -182,5 +173,6 @@ void Application::CheckValidHelper() {
 		valid = false;
 	}
 }
+
 
 

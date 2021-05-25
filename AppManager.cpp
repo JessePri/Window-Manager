@@ -12,6 +12,7 @@
 #include <queue>
 
 
+using std::queue;
 using std::wstring;
 using std::wifstream;
 using std::vector;
@@ -30,9 +31,10 @@ using std::priority_queue;
 
 AppManager::UpdateMap AppManager::updateMap;
 unordered_set<HWND> AppManager::handleSet;
-vector<AppManager::Profile> AppManager::profiles;
+AppManager::ModeMap AppManager::modes;
 AppManager::WinMap AppManager::windowedApps;
 unordered_map<wstring, unsigned int> AppManager::constructionIndexes;
+wstring AppManager::currentMode;
 
 // Gets the state of the computer
 void AppManager::Initialize() {
@@ -71,7 +73,7 @@ void AppManager::MarkWindowUpdates() {
 				} else {
 					updateIter->second.push(p2.first);
 				}
-			}											
+			}
 		}
 	}
 }
@@ -141,10 +143,25 @@ const AppManager::WinMap& AppManager::GetWindowedApps() {
 }
 
 void AppManager::ReadProfilesConstrained(const WCHAR* filePath) {
+	queue<pair<wstring, unsigned int>> modeAndProfileCounts;
 	wifstream input(filePath);
+	int count = -1;
 	if (input.is_open()) {
+		getline(input, currentMode);
+		ReadModeData(input, modeAndProfileCounts);
 		while (!input.eof()) {
-			profiles.emplace_back(input, true);
+			if (count == -1) {
+				vector<Profile> temp;
+				modes.emplace(modeAndProfileCounts.front().first, std::move(temp));
+				++count;
+			}
+			Profile toInsert(input, true);
+			modes[modeAndProfileCounts.front().first].push_back(std::move(toInsert));
+			++count;
+			if (count > modeAndProfileCounts.front().second) {
+				modeAndProfileCounts.pop();
+				break;
+			}
 		}
 	} else {
 		wcout << "FILE NOT OPEN" << endl;
@@ -152,10 +169,25 @@ void AppManager::ReadProfilesConstrained(const WCHAR* filePath) {
 	}
 }
 
+void AppManager::ReadModeData(wifstream& input, queue<pair<wstring, unsigned int>>& modeAndProfileCounts) {
+	wstring temp;
+	wstring mode;
+	unsigned int count = 0;
+	while (getline(input, temp)) {
+		if (temp == L"END") {
+			break;
+		} else if (count == 0) {
+			mode = temp;
+		} else if (count == 1) {
+			modeAndProfileCounts.emplace(mode, stoi(temp));
+			count = 0;
+		}
+		++count;
+	}
+}
+
 
 AppManager::Profile::Profile(wifstream& input, bool constrained) {
-	// The boolean will be used when the Advanced Profiles are implemented
-	// For now it should be ignored
 	ReadProfileConstrained(input);
 }
 
@@ -211,11 +243,11 @@ void AppManager::Profile::ReadProfileConstrained(wifstream& input) {
 }
 
 void AppManager::RunProfile(unsigned int index) {
-	if (index >= profiles.size()) {
+	if (index >= modes[currentMode].size()) {
 		wcout << "Invalid Profile" << endl;
 		return;
 	}
-	for (AppManager::Profile::MoveInstruction instruction : profiles[index].instructions) {
+	for (AppManager::Profile::MoveInstruction instruction : modes[currentMode][index].instructions) {
 		wcout << "Attempting to RunInstruction" << endl;
 		RunInstruction(instruction);
 	}
@@ -224,24 +256,14 @@ void AppManager::RunProfile(unsigned int index) {
 void AppManager::RunInstruction(const AppManager::Profile::MoveInstruction& instruction) {
 	WinMap::iterator iter = windowedApps.find(instruction.filePath);
 	unordered_map<unsigned int, Application>::iterator appIter;
-	if (iter != windowedApps.end()) {	// Checks if the an app of that type exists 
-		appIter = iter->second.find(instruction.appIndex);
-		if (appIter == iter->second.end() || !appIter->second.IsStillValid()) {	//	Checks if this the app is invalid either in index or it was closed
-			handleSet.erase(appIter->second.GetHWND());							//	For the future we may need to add SEH here
-			//iter->second.erase(instruction.appIndex);
-			wcout << "Invalid instruction!" << endl;
-			return;
-		}
-	} else {
-		wcout << "Invalid instruction!" << endl;
-		return;
+	if (CheckValidInstruction(instruction, appIter)) {
+		wcout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << endl;
+		wcout << instruction.ToString() << endl;
+		appIter->second.PrintApplicaiton();
+		wcout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << endl;
+		appIter->second.SetPosition
+		(instruction.x, instruction.y, instruction.cx, instruction.cy, SWP_ASYNCWINDOWPOS);
 	}
-	wcout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << endl;
-	wcout << instruction.ToString() << endl;
-	appIter->second.PrintApplicaiton();
-	wcout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << endl;
-	appIter->second.SetPosition
-	(instruction.x, instruction.y, instruction.cx, instruction.cy, SWP_ASYNCWINDOWPOS);
 }
 
 void AppManager::PrintWindowedApps() {
@@ -283,7 +305,7 @@ wstring AppManager::Profile::ToString() {
 
 void AppManager::PrintProfiles() {
 	unsigned int count = 0;
-	for (Profile profile : profiles) {
+	for (Profile profile : modes[currentMode]) {
 		wcout << "#############################################" << endl;
 		wcout << profile.ToString() << endl;
 		wcout << "#############################################" << endl;
@@ -316,6 +338,38 @@ AppManager::Profile::MoveInstruction::MoveInstruction(const PreInstruction& preI
 		++cy;
 	}
 }
+
+void AppManager::ClearProfiles() {
+	for (const Profile& p : modes[currentMode]) {
+		ClearProfile(p);
+	}
+}
+
+void AppManager::ClearProfile(const Profile& profile) {
+	unordered_map<unsigned int, Application>::iterator appIter;
+	for (const Profile::MoveInstruction& instruction : profile.instructions) {
+		if (CheckValidInstruction(instruction, appIter)) {
+			appIter->second.MinimizeApplication();
+		}
+	}
+}
+
+bool AppManager::CheckValidInstruction(const Profile::MoveInstruction& instruction, unordered_map<unsigned int, Application>::iterator& toReturn) {
+	WinMap::iterator iter = windowedApps.find(instruction.filePath);
+	if (iter != windowedApps.end()) {	// Checks if the an app of that type exists 
+		toReturn = iter->second.find(instruction.appIndex);
+		if (toReturn == iter->second.end() || !toReturn->second.IsStillValid()) {	//	Checks if this the app is invalid either in index or it was closed
+			handleSet.erase(toReturn->second.GetHWND());							//	For the future we may need to add SEH here
+			wcout << "Invalid instruction!" << endl;
+			return false;
+		}
+	} else {
+		wcout << "Invalid instruction!" << endl;
+		return false;
+	}
+	return true;
+}
+
 
 // Bad code....
 
