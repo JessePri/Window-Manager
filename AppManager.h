@@ -112,6 +112,8 @@ public:
 
 	static void ClearProfiles();
 
+	static void LaunchProfile(unsigned int index);
+
 private:
 	
 	static void ClearProfile(const Profile& profile);
@@ -128,15 +130,7 @@ private:
 
 	static bool CheckValidInstruction(const Profile::MoveInstruction& instruction, std::unordered_map<unsigned int, Application>::iterator& toReturn);
 
-	//static void CreateNewWindow(const AppManager::Profile::MoveInstruction& instruction);
-	//
-	//static BOOL CALLBACK FindNewValidWindow(_In_ HWND hwnd, LPARAM);
-	//static Application newValidWindow;
-	//static std::wstring modulePathToCompare;
-
-
-	
-
+	static void LaunchWindowFromMoveInstruction(const Profile::MoveInstruction& instruction);
 
 	static WinMap windowedApps;														// Stores all of the applications
 	static std::unordered_set<HWND> handleSet;										// Stores all of the valid handles

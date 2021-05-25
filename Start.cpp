@@ -26,7 +26,7 @@ void Start::Initialize() {
 	//RegisterHotKey(NULL, 2, MOD_NOREPEAT | MOD_CONTROL | MOD_ALT, 0x32);
 	//RegisterHotKey(NULL, 3, MOD_NOREPEAT | MOD_CONTROL | MOD_ALT, 0x33);
 	//RegisterHotKey(NULL, 0, MOD_NOREPEAT | MOD_CONTROL | MOD_ALT, 0x30);
-	wcout << (int)(MOD_NOREPEAT | MOD_CONTROL | MOD_ALT) << endl;
+	wcout << (int)(MOD_NOREPEAT | MOD_CONTROL | MOD_SHIFT) << endl;
 }
 
 void Start::StartManager() {
@@ -42,9 +42,8 @@ void Start::StartManager() {
 			if (msg.wParam > 1000) {
 				AppManager::ClearProfiles();
 			} else if (msg.wParam > 100) {
-				unsigned int profileIndex = msg.wParam - 100;
-				// Launch Profile according to the profile index
-				// Run the profile
+				unsigned int profileIndex = msg.wParam - 101;
+				AppManager::LaunchProfile(profileIndex);
 			} else if (msg.wParam > 0) {
 				AppManager::RunProfile(msg.wParam - 1);
 			} else if (msg.wParam == 0) {

@@ -247,7 +247,7 @@ void AppManager::RunProfile(unsigned int index) {
 		wcout << "Invalid Profile" << endl;
 		return;
 	}
-	for (AppManager::Profile::MoveInstruction instruction : modes[currentMode][index].instructions) {
+	for (const AppManager::Profile::MoveInstruction& instruction : modes[currentMode][index].instructions) {
 		wcout << "Attempting to RunInstruction" << endl;
 		RunInstruction(instruction);
 	}
@@ -370,39 +370,26 @@ bool AppManager::CheckValidInstruction(const Profile::MoveInstruction& instructi
 	return true;
 }
 
+void AppManager::LaunchProfile(unsigned int index) {
+	if (index >= modes[currentMode].size()) {
+		wcout << "Invalid Profile To Launch" << endl;
+		return;
+	}
+	UpdateAllWindowedApplications();
+	for (const Profile::MoveInstruction& instruction : modes[currentMode][index].instructions) {
+		LaunchWindowFromMoveInstruction(instruction);
+	}
+}
 
-// Bad code....
-
-//void AppManager::CreateNewWindow(const AppManager::Profile::MoveInstruction& instruction) {
-//	CreateProcess(instruction.filePath.c_str(), NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
-//	Sleep(1000);
-//	EnumWindows(FindNewValidWindow, 0);
-//}
-//
-//// This needs to be modified
-//BOOL AppManager::FindNewValidWindow(_In_ HWND hwnd, LPARAM) {
-//	Application temp(hwnd);
-//	if (temp.GetWindowModulePath() != modulePathToCompare) {
-//		return true;
-//	}
-//	auto iter = windowedApps.find(modulePathToCompare);
-//	if (iter == windowedApps.end()) {
-//		newValidWindow = std::move(temp);
-//	} else {
-//		for (Application& app : iter->second) {
-//			if (app.GetHWND() == temp.GetHWND()) {
-//				return true;
-//			}
-//		}
-//		newValidWindow = std::move(temp);
-//	}
-//	return false;
-//	// Check if the module has an application with the following module path
-//	// If it does then check all the hwnd values and return false once you have found that it is not contained
-//	// If it doesn't then you would return false
-//	// In both cases before returing the newValidWindow should be set
-//	// After this continue the logic that you were developing in the RunInstruction(...) function
-//}
-
-
-
+void AppManager::LaunchWindowFromMoveInstruction(const Profile::MoveInstruction& instruction) {
+	std::unordered_map<unsigned int, Application>::iterator iter;		// This variable does not have use in this context
+	wcout << "Instruction index: " << instruction.appIndex << endl;
+	if (CheckValidInstruction(instruction, iter)) {
+		wcout << "HOW?" << endl;
+		return;
+	}
+	STARTUPINFO si;
+	PROCESS_INFORMATION pi;
+	WCHAR str[5];
+	CreateProcess(instruction.filePath.c_str(), str, 0, 0, 0, 0, 0, 0, &si, &pi);
+}
