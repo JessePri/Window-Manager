@@ -15,6 +15,7 @@ class AppManager {
 public:
 	class Profile;
 
+	typedef std::unordered_map<std::wstring, std::queue<unsigned int>> LaunchUpdateMap;	// Add a seperate function path for updating when there is a profile launch...
 	typedef std::unordered_map<std::wstring, std::unordered_map<unsigned int, Application>> WinMap;
 	typedef std::unordered_map<std::wstring, std::vector<Profile>> ModeMap;
 	typedef std::unordered_map<HWND, std::pair<unsigned int, std::wstring>> HandleMap;
@@ -139,5 +140,6 @@ private:
 	static MONITORINFO monitorInfo;													// Stores the info of a monitor
 	static std::unordered_map <std::wstring, unsigned int> constructionIndexes;
 	static std::wstring currentMode;
+	static LaunchUpdateMap launchUpdateMap;
 };
 

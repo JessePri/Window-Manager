@@ -29,6 +29,7 @@ using std::unordered_set;
 using std::priority_queue;
 
 
+AppManager::LaunchUpdateMap AppManager::launchUpdateMap;
 AppManager::UpdateMap AppManager::updateMap;
 unordered_set<HWND> AppManager::handleSet;
 AppManager::ModeMap AppManager::modes;
@@ -107,11 +108,34 @@ BOOL AppManager::WindowUpdater(_In_ HWND hwnd, LPARAM) {
 	Application app(hwnd);
 	auto iter = windowedApps.find(app.GetWindowModulePath());
 	auto updateIter = updateMap.find(app.GetWindowModulePath());
+	auto launchUpdateIter = launchUpdateMap.find(app.GetWindowModulePath());
 	if (!app.IsValid()) {		// Is the app it self valid (can we access it and is it an actual window?)
 		return true;
-	} else if (!(handleSet.find(hwnd) == handleSet.end())) {
+	} else if (!(handleSet.find(hwnd) == handleSet.end())) {	// Checks if the hwnd is still used in the application
 		app.PrintApplicaiton();
 		return true;
+	} else if (launchUpdateIter != launchUpdateMap.end()) {
+		if (iter == windowedApps.end()) {		// This if statement checks if the app is infact completely new app and a new type of app
+			handleSet.emplace(hwnd);
+			constructionIndexes.emplace(app.GetWindowModulePath(), 0);
+			unordered_map<unsigned int, Application> temp;
+			wstring key = app.GetWindowModulePath();
+			temp.emplace(launchUpdateIter->second.front(), std::move(app));
+			launchUpdateIter->second.pop();
+			if (launchUpdateIter->second.empty()) {
+				launchUpdateMap.erase(app.GetWindowModulePath());
+			}
+			windowedApps.emplace(key, std::move(temp));
+		} else {
+			cout << hwnd << endl;
+			handleSet.emplace(hwnd);
+			wstring key = app.GetWindowModulePath();
+			iter->second.emplace(launchUpdateIter->second.front(), std::move(app));	// NOTE: not updating this may cause issues 
+			launchUpdateIter->second.pop();
+			if (launchUpdateIter->second.empty()) {
+				launchUpdateMap.erase(app.GetWindowModulePath());
+			}
+		}
 	} else if (updateIter != updateMap.end()) {		// Was it previously identified as invalid? Then replace it with this new one.
 		auto tempIter = iter->second.find(updateIter->second.top());
 		if (tempIter == iter->second.end()) {
@@ -133,7 +157,14 @@ BOOL AppManager::WindowUpdater(_In_ HWND hwnd, LPARAM) {
 		cout << hwnd << endl;
 		handleSet.emplace(hwnd);
 		wstring key = app.GetWindowModulePath();
-		iter->second.emplace(++constructionIndexes[key], std::move(app));	// NOTE: not updating this may cause issues 
+		while (iter->second.find(++constructionIndexes[key]) != iter->second.end()) {
+			continue;
+		}
+		iter->second.emplace(constructionIndexes[key], std::move(app));	// NOTE: not updating this may cause issues 
+		//cout << hwnd << endl;
+		//handleSet.emplace(hwnd);
+		//wstring key = app.GetWindowModulePath();
+		//iter->second.emplace(++constructionIndexes[key], std::move(app));	// NOTE: not updating this may cause issues 
 	}
 	return true;
 }
@@ -390,6 +421,17 @@ void AppManager::LaunchWindowFromMoveInstruction(const Profile::MoveInstruction&
 	}
 	STARTUPINFO si;
 	PROCESS_INFORMATION pi;
-	WCHAR str[5];
+
+
+	WCHAR str[500];
+
+	auto launchUpdateIter = launchUpdateMap.find(instruction.filePath);
+	if (launchUpdateIter == launchUpdateMap.end()) {
+		queue<unsigned int> temp;
+		temp.push(instruction.appIndex);
+		launchUpdateMap.emplace(instruction.filePath, std::move(temp));
+	} else {
+		launchUpdateIter->second.push(instruction.appIndex);
+	}
 	CreateProcess(instruction.filePath.c_str(), str, 0, 0, 0, 0, 0, 0, &si, &pi);
 }
