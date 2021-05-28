@@ -10,8 +10,11 @@
 #include <exception>
 #include <unordered_map>
 #include <queue>
+#include <wchar.h>
+#include <list>
 
 
+using std::list;
 using std::queue;
 using std::wstring;
 using std::wifstream;
@@ -54,6 +57,7 @@ void AppManager::GetAllWindowedApplications() {
 void AppManager::UpdateAllWindowedApplications() {
 	LPARAM ignored = 0;
 	updateMap.clear();
+	EnumWindows(WindowUpdater, ignored);
 	MarkWindowUpdates();
 	EnumWindows(WindowUpdater, ignored);
 }
@@ -139,8 +143,6 @@ BOOL AppManager::WindowUpdater(_In_ HWND hwnd, LPARAM) {
 	} else if (updateIter != updateMap.end()) {		// Was it previously identified as invalid? Then replace it with this new one.
 		auto tempIter = iter->second.find(updateIter->second.top());
 		if (tempIter == iter->second.end()) {
-			wcout << "HIT" << endl;
-			//updateIter->second.pop();
 			return true;
 		}
 		tempIter->second = std::move(app);		// This needs to be changed
@@ -160,11 +162,8 @@ BOOL AppManager::WindowUpdater(_In_ HWND hwnd, LPARAM) {
 		while (iter->second.find(++constructionIndexes[key]) != iter->second.end()) {
 			continue;
 		}
+		wcout << "HIT" << endl;
 		iter->second.emplace(constructionIndexes[key], std::move(app));	// NOTE: not updating this may cause issues 
-		//cout << hwnd << endl;
-		//handleSet.emplace(hwnd);
-		//wstring key = app.GetWindowModulePath();
-		//iter->second.emplace(++constructionIndexes[key], std::move(app));	// NOTE: not updating this may cause issues 
 	}
 	return true;
 }
@@ -344,8 +343,27 @@ void AppManager::PrintProfiles() {
 	}
 }
 
+wstring ConvertToLaunchPath(const wstring& filePath) {
+	list<WCHAR> tempStr(filePath.begin(), filePath.end());
+	auto end = tempStr.end();
+	unsigned char skipCount = 0;
+	for (auto iter = tempStr.begin(); iter != end; ++iter) {
+		if (*iter == L'\\') {
+			iter = tempStr.insert(iter, L'\\');
+			++iter;
+		}
+	}
+	auto tempIter = tempStr.begin();
+	tempStr.insert(tempIter, L'\"');
+	tempIter = tempStr.end();
+	tempStr.insert(tempIter, L'\"');
+	wstring toReturn(tempStr.begin(), tempStr.end());
+	return toReturn;
+}
+
 AppManager::Profile::MoveInstruction::MoveInstruction(const PreInstruction& preInstruction) {
 	filePath = preInstruction.filePath;
+	filePathToLaunch = ConvertToLaunchPath(filePath);
 	appIndex = preInstruction.appIndex;
 
 	double left = (double)Displays::displays[preInstruction.displayID].workArea.left;
@@ -412,6 +430,17 @@ void AppManager::LaunchProfile(unsigned int index) {
 	}
 }
 
+void CopyStr(WCHAR* toReturn, wstring str) {
+	for (wstring::size_type i = 0; i < str.length(); ++i) {
+		toReturn[i] = str[i];
+	}
+}
+
+/* To Do:
+*	- Fix the update code so that it does not go out of bounds
+*		- Spit the updater into two seperate functions
+*/
+
 void AppManager::LaunchWindowFromMoveInstruction(const Profile::MoveInstruction& instruction) {
 	std::unordered_map<unsigned int, Application>::iterator iter;		// This variable does not have use in this context
 	wcout << "Instruction index: " << instruction.appIndex << endl;
@@ -419,11 +448,6 @@ void AppManager::LaunchWindowFromMoveInstruction(const Profile::MoveInstruction&
 		wcout << "HOW?" << endl;
 		return;
 	}
-	STARTUPINFO si;
-	PROCESS_INFORMATION pi;
-
-
-	WCHAR str[500];
 
 	auto launchUpdateIter = launchUpdateMap.find(instruction.filePath);
 	if (launchUpdateIter == launchUpdateMap.end()) {
@@ -433,5 +457,19 @@ void AppManager::LaunchWindowFromMoveInstruction(const Profile::MoveInstruction&
 	} else {
 		launchUpdateIter->second.push(instruction.appIndex);
 	}
-	CreateProcess(instruction.filePath.c_str(), str, 0, 0, 0, 0, 0, 0, &si, &pi);
+
+	STARTUPINFO si;
+	PROCESS_INFORMATION pi;
+
+	ZeroMemory(&si, sizeof(si));
+	si.cb = sizeof(si);
+	ZeroMemory(&pi, sizeof(pi));
+
+	WCHAR* path = _wcsdup(instruction.filePathToLaunch.c_str());
+	WCHAR empty[1] = L"";
+	wcout << path << endl;	// Change the module path to make it proper... that is the error most likely...
+	if (!CreateProcess(0, path, 0, 0, 0, 0, 0, 0, &si, &pi)) { // This function is causing problems
+		wcout << "WOWWW" << endl;
+	}
 }
+

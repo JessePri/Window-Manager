@@ -42,6 +42,7 @@ public:
 
 		struct MoveInstruction {	// Used to set the position of a window
 			std::wstring filePath;
+			std::wstring filePathToLaunch;
 			unsigned int appIndex;
 			int x;
 			int y;
