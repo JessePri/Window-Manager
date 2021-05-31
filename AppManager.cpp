@@ -34,31 +34,29 @@ using std::priority_queue;
 
 AppManager::LaunchUpdateMap AppManager::launchUpdateMap;
 AppManager::UpdateMap AppManager::updateMap;
-unordered_set<HWND> AppManager::handleSet;
+unordered_set<HWND> AppManager::handlesUsed;
+unordered_set<HWND> AppManager::allHandles;
 AppManager::ModeMap AppManager::modes;
 AppManager::WinMap AppManager::windowedApps;
-unordered_map<wstring, unsigned int> AppManager::constructionIndexes;
 wstring AppManager::currentMode;
 
 // Gets the state of the computer
 void AppManager::Initialize() {
-	GetAllWindowedApplications();
+	GetAllHandles();
 	ReadProfilesConstrained(L"ProfileTest.txt");
 }
 
 // Finds all valid window applications
-void AppManager::GetAllWindowedApplications() {
-	windowedApps.clear();
+void AppManager::GetAllHandles() {
+	allHandles.clear();
 	LPARAM ignored = 0;
-	EnumWindows(WindowConstructor, ignored);
+	EnumWindows(UpdateAllHandles, ignored);
 }
 
 // Updates the state of the backend after it is first run
 void AppManager::UpdateAllWindowedApplications() {
 	LPARAM ignored = 0;
 	updateMap.clear();
-	EnumWindows(WindowUpdater, ignored);
-	MarkWindowUpdates();
 	EnumWindows(WindowUpdater, ignored);
 }
 
@@ -69,7 +67,7 @@ void AppManager::MarkWindowUpdates() {
 		for (auto& p2 : p1.second) {
 			if (!p2.second.IsStillValid()) {
 				wcout << "HWND TO REMOVE: " << p2.second.GetHWND() << endl;
-				handleSet.erase(p2.second.GetHWND());
+				handlesUsed.erase(p2.second.GetHWND());
 				UpdateMap::iterator updateIter = updateMap.find(p2.second.GetWindowModulePath());
 				if (updateIter == updateMap.end()) {
 					priority_queue<unsigned int, std::vector<unsigned int>, std::greater<unsigned int>> temp;
@@ -83,28 +81,13 @@ void AppManager::MarkWindowUpdates() {
 	}
 }
 
-// Constructs each Application class from a window handle
-BOOL AppManager::WindowConstructor(_In_ HWND hwnd, LPARAM) {
+// Finds all valid handles that are on the machine
+BOOL AppManager::UpdateAllHandles(_In_ HWND hwnd, LPARAM) {
 	Application app(hwnd);
 	if (!app.IsValid()) {
 		return true;
 	}
-	handleSet.emplace(hwnd);
-	auto iter = windowedApps.find(app.GetWindowModulePath());
-	if (iter == windowedApps.end()) {		// If the type of application is new then we will add it along with new catagory in windowedApps
-		constructionIndexes.emplace(app.GetWindowModulePath(), 0);
-		unordered_map<unsigned int, Application> temp;
-		unordered_map<HWND, unsigned int> handleTemp;
-		wstring key = app.GetWindowModulePath();
-		pair<unsigned int, wstring> hMapPair(0, key);
-		temp.emplace(0, std::move(app));
-		windowedApps.emplace(key, std::move(temp));
-	} else {		// If the application is not of a new type then it is added to a section of that type
-		wstring key = app.GetWindowModulePath();
-		pair<unsigned int, wstring> hMapPair(constructionIndexes[key] + 1, key);
-		windowedApps[key].emplace(++constructionIndexes[key], std::move(app));
-	}
-	return true;
+	allHandles.emplace(hwnd);
 }
 
 // Updates the windows that are not currently valid, and adds any new applications into the app
@@ -113,15 +96,25 @@ BOOL AppManager::WindowUpdater(_In_ HWND hwnd, LPARAM) {
 	auto iter = windowedApps.find(app.GetWindowModulePath());
 	auto updateIter = updateMap.find(app.GetWindowModulePath());
 	auto launchUpdateIter = launchUpdateMap.find(app.GetWindowModulePath());
-	if (!app.IsValid()) {		// Is the app it self valid (can we access it and is it an actual window?)
+	if (!app.IsValid()) {		// Is the app itself a valid app from the users point of view
 		return true;
-	} else if (!(handleSet.find(hwnd) == handleSet.end())) {	// Checks if the hwnd is still used in the application
+	}
+	if (!app.IsStillValid()) {
+		handlesUsed.erase(hwnd);
+	}
+	if (!(allHandles.find(hwnd) == allHandles.end())) {		// If the handle is not new in the whole application
+		return true;
+	} else if (!(handlesUsed.find(hwnd) == handlesUsed.end())) {	// Checks if the hwnd is still used in the application (might be redundant)
+		wcout << "USED HANDLE" << endl;
 		app.PrintApplicaiton();
 		return true;
 	} else if (launchUpdateIter != launchUpdateMap.end()) {
+		wcout << "HIT" << endl;
 		if (iter == windowedApps.end()) {		// This if statement checks if the app is infact completely new app and a new type of app
-			handleSet.emplace(hwnd);
-			constructionIndexes.emplace(app.GetWindowModulePath(), 0);
+			wcout << "HIT 1" << endl;
+			wcout << "launchUpdateIter->second.front(): " << launchUpdateIter->second.front() << endl;
+			app.PrintApplicaiton();
+			handlesUsed.emplace(hwnd);
 			unordered_map<unsigned int, Application> temp;
 			wstring key = app.GetWindowModulePath();
 			temp.emplace(launchUpdateIter->second.front(), std::move(app));
@@ -131,41 +124,19 @@ BOOL AppManager::WindowUpdater(_In_ HWND hwnd, LPARAM) {
 			}
 			windowedApps.emplace(key, std::move(temp));
 		} else {
-			cout << hwnd << endl;
-			handleSet.emplace(hwnd);
+			wcout << "HIT 2" << endl;
+			wcout << "launchUpdateIter->second.front(): " << launchUpdateIter->second.front() << endl;
+			app.PrintApplicaiton();
+			handlesUsed.emplace(hwnd);
 			wstring key = app.GetWindowModulePath();
-			iter->second.emplace(launchUpdateIter->second.front(), std::move(app));	// NOTE: not updating this may cause issues 
+			iter->second.erase(launchUpdateIter->second.front());
+			iter->second.emplace(launchUpdateIter->second.front(), std::move(app));
 			launchUpdateIter->second.pop();
 			if (launchUpdateIter->second.empty()) {
 				launchUpdateMap.erase(app.GetWindowModulePath());
 			}
 		}
-	} else if (updateIter != updateMap.end()) {		// Was it previously identified as invalid? Then replace it with this new one.
-		auto tempIter = iter->second.find(updateIter->second.top());
-		if (tempIter == iter->second.end()) {
-			return true;
-		}
-		tempIter->second = std::move(app);		// This needs to be changed
-		handleSet.emplace(hwnd);
-		updateIter->second.pop();
-	} else if (iter == windowedApps.end()) {		// This if statement checks if the app is infact completely new app and a new type of app
-		handleSet.emplace(hwnd);
-		constructionIndexes.emplace(app.GetWindowModulePath(), 0);
-		unordered_map<unsigned int, Application> temp;
-		wstring key = app.GetWindowModulePath();
-		temp.emplace(0, std::move(app));
-		windowedApps.emplace(key, std::move(temp));
-	} else {
-		cout << hwnd << endl;
-		handleSet.emplace(hwnd);
-		wstring key = app.GetWindowModulePath();
-		while (iter->second.find(++constructionIndexes[key]) != iter->second.end()) {
-			continue;
-		}
-		wcout << "HIT" << endl;
-		iter->second.emplace(constructionIndexes[key], std::move(app));	// NOTE: not updating this may cause issues 
 	}
-	return true;
 }
 
 const AppManager::WinMap& AppManager::GetWindowedApps() {
@@ -408,7 +379,7 @@ bool AppManager::CheckValidInstruction(const Profile::MoveInstruction& instructi
 	if (iter != windowedApps.end()) {	// Checks if the an app of that type exists 
 		toReturn = iter->second.find(instruction.appIndex);
 		if (toReturn == iter->second.end() || !toReturn->second.IsStillValid()) {	//	Checks if this the app is invalid either in index or it was closed
-			handleSet.erase(toReturn->second.GetHWND());							//	For the future we may need to add SEH here
+			handlesUsed.erase(toReturn->second.GetHWND());							//	For the future we may need to add SEH here
 			wcout << "Invalid instruction!" << endl;
 			return false;
 		}
@@ -424,10 +395,12 @@ void AppManager::LaunchProfile(unsigned int index) {
 		wcout << "Invalid Profile To Launch" << endl;
 		return;
 	}
-	UpdateAllWindowedApplications();
+	GetAllHandles();
 	for (const Profile::MoveInstruction& instruction : modes[currentMode][index].instructions) {
 		LaunchWindowFromMoveInstruction(instruction);
 	}
+	Sleep(1000);
+	UpdateAllWindowedApplications();
 }
 
 void CopyStr(WCHAR* toReturn, wstring str) {
@@ -439,6 +412,8 @@ void CopyStr(WCHAR* toReturn, wstring str) {
 /* To Do:
 *	- Fix the update code so that it does not go out of bounds
 *		- Spit the updater into two seperate functions
+*		- Or only register apps that are lauched through the app
+*			- This would make the app much less anoying to run in the backround
 */
 
 void AppManager::LaunchWindowFromMoveInstruction(const Profile::MoveInstruction& instruction) {
@@ -467,8 +442,8 @@ void AppManager::LaunchWindowFromMoveInstruction(const Profile::MoveInstruction&
 
 	WCHAR* path = _wcsdup(instruction.filePathToLaunch.c_str());
 	WCHAR empty[1] = L"";
-	wcout << path << endl;	// Change the module path to make it proper... that is the error most likely...
-	if (!CreateProcess(0, path, 0, 0, 0, 0, 0, 0, &si, &pi)) { // This function is causing problems
+	wcout << path << endl;
+	if (!CreateProcess(0, path, 0, 0, 0, 0, 0, 0, &si, &pi)) {
 		wcout << "WOWWW" << endl;
 	}
 }

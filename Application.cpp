@@ -169,7 +169,7 @@ void Application::CheckValidHelper() {
 	Application temp(hwnd);
 	if (!temp.IsValid()) {
 		valid = false;
-	} else if (temp.GetWindowModulePath() != windowModulePath) {
+	} else if (temp.GetWindowModulePath() != windowModulePath) {	// Checks to see if the handle is recycled
 		valid = false;
 	}
 }
