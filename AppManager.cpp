@@ -33,7 +33,6 @@ using std::priority_queue;
 
 
 AppManager::LaunchUpdateMap AppManager::launchUpdateMap;
-AppManager::UpdateMap AppManager::updateMap;
 unordered_set<HWND> AppManager::handlesUsed;
 unordered_set<HWND> AppManager::allHandles;
 AppManager::ModeMap AppManager::modes;
@@ -56,30 +55,9 @@ void AppManager::GetAllHandles() {
 // Updates the state of the backend after it is first run
 void AppManager::UpdateAllWindowedApplications() {
 	LPARAM ignored = 0;
-	updateMap.clear();
 	EnumWindows(WindowUpdater, ignored);
 }
 
-// Finds all windows that are invalid and marks them for the updater
-void AppManager::MarkWindowUpdates() {
-	// This code iterates over all the applications and add them to the update map if they are invalid
-	for (auto& p1 : windowedApps) {
-		for (auto& p2 : p1.second) {
-			if (!p2.second.IsStillValid()) {
-				wcout << "HWND TO REMOVE: " << p2.second.GetHWND() << endl;
-				handlesUsed.erase(p2.second.GetHWND());
-				UpdateMap::iterator updateIter = updateMap.find(p2.second.GetWindowModulePath());
-				if (updateIter == updateMap.end()) {
-					priority_queue<unsigned int, std::vector<unsigned int>, std::greater<unsigned int>> temp;
-					temp.push(p2.first);
-					updateMap.emplace(p2.second.GetWindowModulePath(), std::move(temp));
-				} else {
-					updateIter->second.push(p2.first);
-				}
-			}
-		}
-	}
-}
 
 // Finds all valid handles that are on the machine
 BOOL AppManager::UpdateAllHandles(_In_ HWND hwnd, LPARAM) {
@@ -94,7 +72,6 @@ BOOL AppManager::UpdateAllHandles(_In_ HWND hwnd, LPARAM) {
 BOOL AppManager::WindowUpdater(_In_ HWND hwnd, LPARAM) {
 	Application app(hwnd);
 	auto iter = windowedApps.find(app.GetWindowModulePath());
-	auto updateIter = updateMap.find(app.GetWindowModulePath());
 	auto launchUpdateIter = launchUpdateMap.find(app.GetWindowModulePath());
 	if (!app.IsValid()) {		// Is the app itself a valid app from the users point of view
 		return true;

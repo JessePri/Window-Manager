@@ -126,8 +126,6 @@ private:
 
 	static BOOL CALLBACK UpdateAllHandles(_In_ HWND hwnd, LPARAM IGNORED);
 
-	static void MarkWindowUpdates();
-
 	static BOOL CALLBACK WindowUpdater(_In_ HWND hwnd, LPARAM IGNORED);
 
 	static bool CheckValidInstruction(const Profile::MoveInstruction& instruction, std::unordered_map<unsigned int, Application>::iterator& toReturn);
@@ -135,10 +133,9 @@ private:
 	static void LaunchWindowFromMoveInstruction(const Profile::MoveInstruction& instruction);
 
 	static WinMap windowedApps;														// Stores all of the applications
-	static std::unordered_set<HWND> handlesUsed;										// Stores all of the valid handles
-	static std::unordered_set<HWND> allHandles;
-	static UpdateMap updateMap;														// Stores stores indices of applications that need to be updated
-	static ModeMap modes;											// Stores all profiles associated with their modes
+	static std::unordered_set<HWND> handlesUsed;									// Stores all of the valid handles in use
+	static std::unordered_set<HWND> allHandles;										// Stores all handles of the machine after a call to a fucntion that updates it
+	static ModeMap modes;															// Stores all profiles associated with their modes
 	static MONITORINFO monitorInfo;													// Stores the info of a monitor
 	static std::wstring currentMode;
 	static LaunchUpdateMap launchUpdateMap;
