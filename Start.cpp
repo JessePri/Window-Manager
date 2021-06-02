@@ -1,5 +1,4 @@
 #include "Start.h"
-
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -28,6 +27,7 @@ void Start::Initialize() {
 void Start::StartManager() {
 	BOOL errorState;
 	MSG msg;
+
 	while ((errorState = GetMessage(&msg, NULL, 0, 0)) != 0) {
 		if (errorState == -1) {
 			return;
@@ -35,6 +35,7 @@ void Start::StartManager() {
 			wcout << "HOT KEY PRESSED" << endl;
 			wcout << msg.wParam << endl;
 			wcout << "---------------------------------------------" << endl;
+
 			if (msg.wParam > 1000) {
 				AppManager::ClearProfiles();
 			} else if (msg.wParam > 100) {
@@ -47,6 +48,7 @@ void Start::StartManager() {
 			}
 		}
 	}
+
 	wcout << "exit" << endl;
 }
 
@@ -65,6 +67,7 @@ void Start::ParseHotKeyFileToData(wifstream& fileStream) {
 	unsigned int count = 0;
 	wstring temp;
 	HotkeyData hotkeyData;
+
 	while (getline(fileStream, temp)) {
 		if (count == 0) {
 			hotkeyData.id = stoi(temp);
@@ -74,13 +77,16 @@ void Start::ParseHotKeyFileToData(wifstream& fileStream) {
 			hotkeyData.virtualKey = stoi(temp);
 			break;
 		}
+
 		++count;
 	}
+
 	wcout << "------------------------------------------" << endl;
 	wcout << "id: " << hotkeyData.id << endl;
 	wcout << "modifiers: " << hotkeyData.modifiers << endl;
 	wcout << "virtual key: " << hotkeyData.virtualKey << endl;
 	wcout << "------------------------------------------" << endl;
+
 	RegisterHotKeyFromData(hotkeyData);
 }
 

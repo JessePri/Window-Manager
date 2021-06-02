@@ -56,7 +56,7 @@ void AppManager::GetAllHandles() {
 void AppManager::UpdateAllWindowedApplications() {
 	LPARAM ignored = 0;
 	EnumWindows(WindowUpdater, ignored);
-	launchUpdateMap.clear();
+	//launchUpdateMap.clear();
 }
 
 
@@ -405,7 +405,9 @@ void AppManager::LaunchProfile(unsigned int index) {
 		return;
 	}
 
-	GetAllHandles();
+	GetAllHandles();	// Finds all of the handles that are currently in use before the app launches new apps
+						// This is under the assumption that the user updates the windows into the program					
+						// Before they open anythign else of the same type and use it (the program could suck the window in)
 
 	for (const Profile::MoveInstruction& instruction : modes[currentMode][index].instructions) {
 		LaunchWindowFromMoveInstruction(instruction);
