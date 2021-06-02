@@ -128,14 +128,17 @@ Application& Application::operator=(Application&& app) noexcept {
 		windowModulePath = std::move(app.windowModulePath);
 		valid = std::move(app.valid);
 	}
+
 	return *this;
 }
 
 wstring Application::ToString() {
 	IsStillValid();
+
 	if (!valid) {
 		return L"Invalid Application Window! \n";
 	}
+
 	wstring toReturn;
 	toReturn += L"x: " + to_wstring(x) + L"\n";
 	toReturn += L"y: " + to_wstring(y) + L"\n";
@@ -143,6 +146,7 @@ wstring Application::ToString() {
 	toReturn += L"depth: " + to_wstring(depth) + L"\n";
 	toReturn += L"pastFlag: " + to_wstring(pastFlag) + L"\n";
 	toReturn += L"Module Path: " + windowModulePath + L"\n";
+
 	return toReturn;
 }
 
@@ -167,9 +171,10 @@ void Application::CheckValid() {
 
 void Application::CheckValidHelper() {
 	Application temp(hwnd);
+
 	if (!temp.IsValid()) {
 		valid = false;
-	} else if (temp.GetWindowModulePath() != windowModulePath) {
+	} else if (temp.GetWindowModulePath() != windowModulePath) {	// Checks to see if the handle is recycled
 		valid = false;
 	}
 }

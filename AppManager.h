@@ -15,6 +15,7 @@ class AppManager {
 public:
 	class Profile;
 
+	typedef std::unordered_map<std::wstring, std::unordered_set<unsigned int>> LaunchUpdateMap;	// Add a seperate function path for updating when there is a profile launch...
 	typedef std::unordered_map<std::wstring, std::unordered_map<unsigned int, Application>> WinMap;
 	typedef std::unordered_map<std::wstring, std::vector<Profile>> ModeMap;
 	typedef std::unordered_map<HWND, std::pair<unsigned int, std::wstring>> HandleMap;
@@ -41,6 +42,7 @@ public:
 
 		struct MoveInstruction {	// Used to set the position of a window
 			std::wstring filePath;
+			std::wstring filePathToLaunch;
 			unsigned int appIndex;
 			int x;
 			int y;
@@ -74,7 +76,7 @@ public:
 
 
 
-	static void GetAllWindowedApplications();
+	static void GetAllHandles();
 
 	static void UpdateAllWindowedApplications();
 
@@ -112,38 +114,35 @@ public:
 
 	static void ClearProfiles();
 
+
+
+	static void LaunchProfile(unsigned int index);
+
 private:
 	
+	static void PrintLaunchUpdateMap();
+
 	static void ClearProfile(const Profile& profile);
 
 	static void ReadModeData(std::wifstream&, std::queue<std::pair<std::wstring, unsigned int>>&);
 
 	static void RunInstruction(const Profile::MoveInstruction& instruction);
 
-	static BOOL CALLBACK WindowConstructor(_In_ HWND hwnd, LPARAM IGNORED);
-
-	static void MarkWindowUpdates();
+	static BOOL CALLBACK UpdateAllHandles(_In_ HWND hwnd, LPARAM IGNORED);
 
 	static BOOL CALLBACK WindowUpdater(_In_ HWND hwnd, LPARAM IGNORED);
 
 	static bool CheckValidInstruction(const Profile::MoveInstruction& instruction, std::unordered_map<unsigned int, Application>::iterator& toReturn);
 
-	//static void CreateNewWindow(const AppManager::Profile::MoveInstruction& instruction);
-	//
-	//static BOOL CALLBACK FindNewValidWindow(_In_ HWND hwnd, LPARAM);
-	//static Application newValidWindow;
-	//static std::wstring modulePathToCompare;
-
-
-	
-
+	static void LaunchWindowFromMoveInstruction(const Profile::MoveInstruction& instruction);
 
 	static WinMap windowedApps;														// Stores all of the applications
-	static std::unordered_set<HWND> handleSet;										// Stores all of the valid handles
-	static UpdateMap updateMap;														// Stores stores indices of applications that need to be updated
-	static ModeMap modes;											// Stores all profiles associated with their modes
+	static std::unordered_set<HWND> handlesUsed;									// Stores all of the valid handles in use
+	static std::unordered_set<HWND> allHandles;										// Stores all handles of the machine after a call to a fucntion that updates it
+	static ModeMap modes;															// Stores all profiles associated with their modes
 	static MONITORINFO monitorInfo;													// Stores the info of a monitor
-	static std::unordered_map <std::wstring, unsigned int> constructionIndexes;
 	static std::wstring currentMode;
+	static LaunchUpdateMap launchUpdateMap;
+	static bool firstLaunch;
 };
 
