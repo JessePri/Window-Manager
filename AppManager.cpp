@@ -427,12 +427,6 @@ void AppManager::LaunchProfile(unsigned int index) {
 	}
 }
 
-void CopyStr(WCHAR* toReturn, wstring str) {
-	for (wstring::size_type i = 0; i < str.length(); ++i) {
-		toReturn[i] = str[i];
-	}
-}
-
 void AppManager::LaunchWindowFromMoveInstruction(const Profile::MoveInstruction& instruction) {
 	std::unordered_map<unsigned int, Application>::iterator iter;		// This variable does not have use in this context
 	wcout << "Instruction index: " << instruction.appIndex << endl;
