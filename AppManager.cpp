@@ -56,15 +56,18 @@ void AppManager::GetAllHandles() {
 void AppManager::UpdateAllWindowedApplications() {
 	LPARAM ignored = 0;
 	EnumWindows(WindowUpdater, ignored);
+	launchUpdateMap.clear();
 }
 
 
 // Finds all valid handles that are on the machine
 BOOL AppManager::UpdateAllHandles(_In_ HWND hwnd, LPARAM) {
 	Application app(hwnd);
+
 	if (!app.IsValid()) {
 		return true;
 	}
+
 	allHandles.emplace(hwnd);
 }
 
@@ -73,12 +76,15 @@ BOOL AppManager::WindowUpdater(_In_ HWND hwnd, LPARAM) {
 	Application app(hwnd);
 	auto iter = windowedApps.find(app.GetWindowModulePath());
 	auto launchUpdateIter = launchUpdateMap.find(app.GetWindowModulePath());
+
 	if (!app.IsValid()) {		// Is the app itself a valid app from the users point of view
 		return true;
 	}
-	if (!app.IsStillValid()) {
+
+	if (!app.IsStillValid()) {		// Solves an edge case where a window handle can be recycled
 		handlesUsed.erase(hwnd);
 	}
+
 	if (!(allHandles.find(hwnd) == allHandles.end())) {		// If the handle is not new in the whole application
 		return true;
 	} else if (!(handlesUsed.find(hwnd) == handlesUsed.end())) {	// Checks if the hwnd is still used in the application (might be redundant)
@@ -87,6 +93,7 @@ BOOL AppManager::WindowUpdater(_In_ HWND hwnd, LPARAM) {
 		return true;
 	} else if (launchUpdateIter != launchUpdateMap.end()) {
 		wcout << "HIT" << endl;
+
 		if (iter == windowedApps.end()) {		// This if statement checks if the app is infact completely new app and a new type of app
 			wcout << "HIT 1" << endl;
 			wcout << "launchUpdateIter->second.front(): " << launchUpdateIter->second.front() << endl;
@@ -96,9 +103,11 @@ BOOL AppManager::WindowUpdater(_In_ HWND hwnd, LPARAM) {
 			wstring key = app.GetWindowModulePath();
 			temp.emplace(launchUpdateIter->second.front(), std::move(app));
 			launchUpdateIter->second.pop();
+
 			if (launchUpdateIter->second.empty()) {
 				launchUpdateMap.erase(app.GetWindowModulePath());
 			}
+
 			windowedApps.emplace(key, std::move(temp));
 		} else {
 			wcout << "HIT 2" << endl;
@@ -109,6 +118,7 @@ BOOL AppManager::WindowUpdater(_In_ HWND hwnd, LPARAM) {
 			iter->second.erase(launchUpdateIter->second.front());
 			iter->second.emplace(launchUpdateIter->second.front(), std::move(app));
 			launchUpdateIter->second.pop();
+
 			if (launchUpdateIter->second.empty()) {
 				launchUpdateMap.erase(app.GetWindowModulePath());
 			}
@@ -124,18 +134,22 @@ void AppManager::ReadProfilesConstrained(const WCHAR* filePath) {
 	queue<pair<wstring, unsigned int>> modeAndProfileCounts;
 	wifstream input(filePath);
 	int count = -1;
+
 	if (input.is_open()) {
 		getline(input, currentMode);
 		ReadModeData(input, modeAndProfileCounts);
+
 		while (!input.eof()) {
 			if (count == -1) {
 				vector<Profile> temp;
 				modes.emplace(modeAndProfileCounts.front().first, std::move(temp));
 				++count;
 			}
+
 			Profile toInsert(input, true);
 			modes[modeAndProfileCounts.front().first].push_back(std::move(toInsert));
 			++count;
+
 			if (count > modeAndProfileCounts.front().second) {
 				modeAndProfileCounts.pop();
 				break;
@@ -143,7 +157,6 @@ void AppManager::ReadProfilesConstrained(const WCHAR* filePath) {
 		}
 	} else {
 		wcout << "FILE NOT OPEN" << endl;
-		// Do some logging
 	}
 }
 
@@ -151,6 +164,7 @@ void AppManager::ReadModeData(wifstream& input, queue<pair<wstring, unsigned int
 	wstring temp;
 	wstring mode;
 	unsigned int count = 0;
+
 	while (getline(input, temp)) {
 		if (temp == L"END") {
 			break;
@@ -160,6 +174,7 @@ void AppManager::ReadModeData(wifstream& input, queue<pair<wstring, unsigned int
 			modeAndProfileCounts.emplace(mode, stoi(temp));
 			count = 0;
 		}
+
 		++count;
 	}
 }
@@ -176,11 +191,14 @@ void AppManager::Profile::ReadProfileConstrained(wifstream& input) {
 	PreInstruction preInstruction;
 	bool lastIter = false;
 	unsigned int rcount = 0;
+
 	while (getline(input, temp)) {
 		++rcount;
+
 		if (temp._Equal(L"END")) {
 			break;
 		}
+
 		if (count == 0) {
 			preInstruction.filePath = temp;
 			++count;
@@ -210,11 +228,13 @@ void AppManager::Profile::ReadProfileConstrained(wifstream& input) {
 			lastIter = true;
 			count = 0;
 		}
+
 		if (lastIter) {
 			instructions.emplace_back(preInstruction);
 			lastIter = false;
 		}
 	}
+
 	if (count > 0) {
 		instructions.pop_back();
 	}
@@ -225,6 +245,7 @@ void AppManager::RunProfile(unsigned int index) {
 		wcout << "Invalid Profile" << endl;
 		return;
 	}
+
 	for (const AppManager::Profile::MoveInstruction& instruction : modes[currentMode][index].instructions) {
 		wcout << "Attempting to RunInstruction" << endl;
 		RunInstruction(instruction);
@@ -234,6 +255,7 @@ void AppManager::RunProfile(unsigned int index) {
 void AppManager::RunInstruction(const AppManager::Profile::MoveInstruction& instruction) {
 	WinMap::iterator iter = windowedApps.find(instruction.filePath);
 	unordered_map<unsigned int, Application>::iterator appIter;
+
 	if (CheckValidInstruction(instruction, appIter)) {
 		wcout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << endl;
 		wcout << instruction.ToString() << endl;
@@ -261,28 +283,33 @@ void AppManager::PrintSizeOfWindowedApps() {
 
 wstring AppManager::Profile::MoveInstruction::ToString() const {
 	wstring toReturn = filePath;
+
 	toReturn += L"\nApp Index: " + to_wstring(appIndex) + L"\n";
 	toReturn += L"x: " + to_wstring(x) + L"\n";
 	toReturn += L"y: " + to_wstring(y) + L"\n";
 	toReturn += L"cx: " + to_wstring(cx) + L"\n";
 	toReturn += L"cy: " + to_wstring(cy) + L"\n";
+
 	return toReturn;
 }
 
 wstring AppManager::Profile::ToString() {
 	unsigned int count = 0;
 	wstring toReturn = L"";
+
 	for (MoveInstruction instruction : instructions) {
 		toReturn += L"-----------------------------------------\n";
 		toReturn += instruction.ToString();
 		toReturn += L"-----------------------------------------\n";
 		++count;
 	}
+
 	return toReturn;
 }
 
 void AppManager::PrintProfiles() {
 	unsigned int count = 0;
+
 	for (Profile profile : modes[currentMode]) {
 		wcout << "#############################################" << endl;
 		wcout << profile.ToString() << endl;
@@ -295,12 +322,14 @@ wstring ConvertToLaunchPath(const wstring& filePath) {
 	list<WCHAR> tempStr(filePath.begin(), filePath.end());
 	auto end = tempStr.end();
 	unsigned char skipCount = 0;
+
 	for (auto iter = tempStr.begin(); iter != end; ++iter) {
 		if (*iter == L'\\') {
 			iter = tempStr.insert(iter, L'\\');
 			++iter;
 		}
 	}
+
 	auto tempIter = tempStr.begin();
 	tempStr.insert(tempIter, L'\"');
 	tempIter = tempStr.end();
@@ -344,6 +373,7 @@ void AppManager::ClearProfiles() {
 
 void AppManager::ClearProfile(const Profile& profile) {
 	unordered_map<unsigned int, Application>::iterator appIter;
+
 	for (const Profile::MoveInstruction& instruction : profile.instructions) {
 		if (CheckValidInstruction(instruction, appIter)) {
 			appIter->second.MinimizeApplication();
@@ -353,10 +383,11 @@ void AppManager::ClearProfile(const Profile& profile) {
 
 bool AppManager::CheckValidInstruction(const Profile::MoveInstruction& instruction, unordered_map<unsigned int, Application>::iterator& toReturn) {
 	WinMap::iterator iter = windowedApps.find(instruction.filePath);
+
 	if (iter != windowedApps.end()) {	// Checks if the an app of that type exists 
 		toReturn = iter->second.find(instruction.appIndex);
 		if (toReturn == iter->second.end() || !toReturn->second.IsStillValid()) {	//	Checks if this the app is invalid either in index or it was closed
-			handlesUsed.erase(toReturn->second.GetHWND());							//	For the future we may need to add SEH here
+			handlesUsed.erase(toReturn->second.GetHWND());
 			wcout << "Invalid instruction!" << endl;
 			return false;
 		}
@@ -364,6 +395,7 @@ bool AppManager::CheckValidInstruction(const Profile::MoveInstruction& instructi
 		wcout << "Invalid instruction!" << endl;
 		return false;
 	}
+
 	return true;
 }
 
@@ -372,12 +404,12 @@ void AppManager::LaunchProfile(unsigned int index) {
 		wcout << "Invalid Profile To Launch" << endl;
 		return;
 	}
+
 	GetAllHandles();
+
 	for (const Profile::MoveInstruction& instruction : modes[currentMode][index].instructions) {
 		LaunchWindowFromMoveInstruction(instruction);
 	}
-	Sleep(1000);
-	UpdateAllWindowedApplications();
 }
 
 void CopyStr(WCHAR* toReturn, wstring str) {
@@ -386,28 +418,13 @@ void CopyStr(WCHAR* toReturn, wstring str) {
 	}
 }
 
-/* To Do:
-*	- Fix the update code so that it does not go out of bounds
-*		- Spit the updater into two seperate functions
-*		- Or only register apps that are lauched through the app
-*			- This would make the app much less anoying to run in the backround
-*/
-
 void AppManager::LaunchWindowFromMoveInstruction(const Profile::MoveInstruction& instruction) {
 	std::unordered_map<unsigned int, Application>::iterator iter;		// This variable does not have use in this context
 	wcout << "Instruction index: " << instruction.appIndex << endl;
-	if (CheckValidInstruction(instruction, iter)) {
+
+	if (CheckValidInstruction(instruction, iter)) {		// If the instruction is valid then you don't need ot do anything
 		wcout << "HOW?" << endl;
 		return;
-	}
-
-	auto launchUpdateIter = launchUpdateMap.find(instruction.filePath);
-	if (launchUpdateIter == launchUpdateMap.end()) {
-		queue<unsigned int> temp;
-		temp.push(instruction.appIndex);
-		launchUpdateMap.emplace(instruction.filePath, std::move(temp));
-	} else {
-		launchUpdateIter->second.push(instruction.appIndex);
 	}
 
 	STARTUPINFO si;
@@ -420,7 +437,16 @@ void AppManager::LaunchWindowFromMoveInstruction(const Profile::MoveInstruction&
 	WCHAR* path = _wcsdup(instruction.filePathToLaunch.c_str());
 	WCHAR empty[1] = L"";
 	wcout << path << endl;
-	if (!CreateProcess(0, path, 0, 0, 0, 0, 0, 0, &si, &pi)) {
+
+	if (CreateProcess(0, path, 0, 0, 0, 0, 0, 0, &si, &pi)) {					// If the process is launched then add a app index into the update map 
+		auto launchUpdateIter = launchUpdateMap.find(instruction.filePath);		// for it to be handles by the WindowUpdate function 
+		if (launchUpdateIter == launchUpdateMap.end()) {
+			queue<unsigned int> temp;
+			temp.push(instruction.appIndex);
+			launchUpdateMap.emplace(instruction.filePath, std::move(temp));
+		} else {
+			launchUpdateIter->second.push(instruction.appIndex);
+		}
 		wcout << "WOWWW" << endl;
 	}
 }

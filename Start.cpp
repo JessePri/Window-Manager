@@ -22,10 +22,6 @@ void Start::Initialize() {
 	Displays::Initialize();
 	AppManager::Initialize();
 	ParseHotKeyFile(L"HotkeyTest.txt");
-	//RegisterHotKey(NULL, 1, MOD_NOREPEAT | MOD_CONTROL | MOD_ALT, 0x31);
-	//RegisterHotKey(NULL, 2, MOD_NOREPEAT | MOD_CONTROL | MOD_ALT, 0x32);
-	//RegisterHotKey(NULL, 3, MOD_NOREPEAT | MOD_CONTROL | MOD_ALT, 0x33);
-	//RegisterHotKey(NULL, 0, MOD_NOREPEAT | MOD_CONTROL | MOD_ALT, 0x30);
 	wcout << (int)(MOD_NOREPEAT | MOD_CONTROL | MOD_SHIFT) << endl;
 }
 
