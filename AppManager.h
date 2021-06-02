@@ -15,7 +15,7 @@ class AppManager {
 public:
 	class Profile;
 
-	typedef std::unordered_map<std::wstring, std::queue<unsigned int>> LaunchUpdateMap;	// Add a seperate function path for updating when there is a profile launch...
+	typedef std::unordered_map<std::wstring, std::unordered_set<unsigned int>> LaunchUpdateMap;	// Add a seperate function path for updating when there is a profile launch...
 	typedef std::unordered_map<std::wstring, std::unordered_map<unsigned int, Application>> WinMap;
 	typedef std::unordered_map<std::wstring, std::vector<Profile>> ModeMap;
 	typedef std::unordered_map<HWND, std::pair<unsigned int, std::wstring>> HandleMap;
@@ -114,10 +114,14 @@ public:
 
 	static void ClearProfiles();
 
+
+
 	static void LaunchProfile(unsigned int index);
 
 private:
 	
+	static void PrintLaunchUpdateMap();
+
 	static void ClearProfile(const Profile& profile);
 
 	static void ReadModeData(std::wifstream&, std::queue<std::pair<std::wstring, unsigned int>>&);
@@ -139,5 +143,6 @@ private:
 	static MONITORINFO monitorInfo;													// Stores the info of a monitor
 	static std::wstring currentMode;
 	static LaunchUpdateMap launchUpdateMap;
+	static bool firstLaunch;
 };
 

@@ -38,6 +38,9 @@ unordered_set<HWND> AppManager::allHandles;
 AppManager::ModeMap AppManager::modes;
 AppManager::WinMap AppManager::windowedApps;
 wstring AppManager::currentMode;
+bool AppManager::firstLaunch = true;
+
+
 
 // Gets the state of the computer
 void AppManager::Initialize() {
@@ -56,7 +59,8 @@ void AppManager::GetAllHandles() {
 void AppManager::UpdateAllWindowedApplications() {
 	LPARAM ignored = 0;
 	EnumWindows(WindowUpdater, ignored);
-	//launchUpdateMap.clear();
+	launchUpdateMap.clear();
+	firstLaunch = true;
 }
 
 
@@ -81,28 +85,35 @@ BOOL AppManager::WindowUpdater(_In_ HWND hwnd, LPARAM) {
 		return true;
 	}
 
+	PrintLaunchUpdateMap();
+
 	if (!app.IsStillValid()) {		// Solves an edge case where a window handle can be recycled
 		handlesUsed.erase(hwnd);
 	}
 
 	if (!(allHandles.find(hwnd) == allHandles.end())) {		// If the handle is not new in the whole application
 		return true;
-	} else if (!(handlesUsed.find(hwnd) == handlesUsed.end())) {	// Checks if the hwnd is still used in the application (might be redundant)
+	}
+
+	if (!(handlesUsed.find(hwnd) == handlesUsed.end())) {	// Checks if the hwnd is still used in the application (might be redundant)
 		wcout << "USED HANDLE" << endl;
 		app.PrintApplicaiton();
 		return true;
-	} else if (launchUpdateIter != launchUpdateMap.end()) {
+	} 
+
+	if (launchUpdateIter != launchUpdateMap.end()) {
 		wcout << "HIT" << endl;
+		unsigned int index = *launchUpdateIter->second.begin();
 
 		if (iter == windowedApps.end()) {		// This if statement checks if the app is infact completely new app and a new type of app
 			wcout << "HIT 1" << endl;
-			wcout << "launchUpdateIter->second.front(): " << launchUpdateIter->second.front() << endl;
+			wcout << "launchUpdateIter->second.front(): " << index << endl;
 			app.PrintApplicaiton();
 			handlesUsed.emplace(hwnd);
 			unordered_map<unsigned int, Application> temp;
 			wstring key = app.GetWindowModulePath();
-			temp.emplace(launchUpdateIter->second.front(), std::move(app));
-			launchUpdateIter->second.pop();
+			temp.emplace(index, std::move(app));
+			launchUpdateIter->second.erase(index);
 
 			if (launchUpdateIter->second.empty()) {
 				launchUpdateMap.erase(app.GetWindowModulePath());
@@ -111,19 +122,20 @@ BOOL AppManager::WindowUpdater(_In_ HWND hwnd, LPARAM) {
 			windowedApps.emplace(key, std::move(temp));
 		} else {
 			wcout << "HIT 2" << endl;
-			wcout << "launchUpdateIter->second.front(): " << launchUpdateIter->second.front() << endl;
+			wcout << "index: " << index << endl;
 			app.PrintApplicaiton();
 			handlesUsed.emplace(hwnd);
 			wstring key = app.GetWindowModulePath();
-			iter->second.erase(launchUpdateIter->second.front());
-			iter->second.emplace(launchUpdateIter->second.front(), std::move(app));
-			launchUpdateIter->second.pop();
+			iter->second.erase(index);
+			iter->second.emplace(index, std::move(app));
+			launchUpdateIter->second.erase(index);
 
 			if (launchUpdateIter->second.empty()) {
 				launchUpdateMap.erase(app.GetWindowModulePath());
 			}
 		}
 	}
+	return true;
 }
 
 const AppManager::WinMap& AppManager::GetWindowedApps() {
@@ -400,14 +412,15 @@ bool AppManager::CheckValidInstruction(const Profile::MoveInstruction& instructi
 }
 
 void AppManager::LaunchProfile(unsigned int index) {
+	if (firstLaunch) {
+		GetAllHandles();
+		firstLaunch = false;
+	}
+
 	if (index >= modes[currentMode].size()) {
 		wcout << "Invalid Profile To Launch" << endl;
 		return;
 	}
-
-	GetAllHandles();	// Finds all of the handles that are currently in use before the app launches new apps
-						// This is under the assumption that the user updates the windows into the program					
-						// Before they open anythign else of the same type and use it (the program could suck the window in)
 
 	for (const Profile::MoveInstruction& instruction : modes[currentMode][index].instructions) {
 		LaunchWindowFromMoveInstruction(instruction);
@@ -423,9 +436,18 @@ void CopyStr(WCHAR* toReturn, wstring str) {
 void AppManager::LaunchWindowFromMoveInstruction(const Profile::MoveInstruction& instruction) {
 	std::unordered_map<unsigned int, Application>::iterator iter;		// This variable does not have use in this context
 	wcout << "Instruction index: " << instruction.appIndex << endl;
+	auto launchUpdateIter = launchUpdateMap.find(instruction.filePath);
+
+	
 
 	if (CheckValidInstruction(instruction, iter)) {		// If the instruction is valid then you don't need ot do anything
 		wcout << "HOW?" << endl;
+		PrintLaunchUpdateMap();
+		return;
+	} else if (launchUpdateIter != launchUpdateMap.end()	
+		&& launchUpdateIter->second.find(instruction.appIndex) != launchUpdateIter->second.end()) {		// If the the window was launched already do nothing
+		wcout << "instruction.appIndex: " << instruction.appIndex << endl;
+		PrintLaunchUpdateMap();
 		return;
 	}
 
@@ -438,18 +460,31 @@ void AppManager::LaunchWindowFromMoveInstruction(const Profile::MoveInstruction&
 
 	WCHAR* path = _wcsdup(instruction.filePathToLaunch.c_str());
 	WCHAR empty[1] = L"";
-	wcout << path << endl;
 
 	if (CreateProcess(0, path, 0, 0, 0, 0, 0, 0, &si, &pi)) {					// If the process is launched then add a app index into the update map 
-		auto launchUpdateIter = launchUpdateMap.find(instruction.filePath);		// for it to be handles by the WindowUpdate function 
+		wcout << "LAUNCHED" << endl;											// for it to be handles by the WindowUpdate function 
 		if (launchUpdateIter == launchUpdateMap.end()) {
-			queue<unsigned int> temp;
-			temp.push(instruction.appIndex);
+			unordered_set<unsigned int> temp;
+			temp.emplace(instruction.appIndex);
 			launchUpdateMap.emplace(instruction.filePath, std::move(temp));
 		} else {
-			launchUpdateIter->second.push(instruction.appIndex);
+			launchUpdateIter->second.emplace(instruction.appIndex);
 		}
 		wcout << "WOWWW" << endl;
+	}
+
+	PrintLaunchUpdateMap();
+}
+
+void AppManager::PrintLaunchUpdateMap() {
+	for (auto& p : launchUpdateMap) {
+		wcout << "---------------------------" << endl;
+		wcout << p.first << endl;
+		for (auto& q : p.second) {
+			wcout << q << ",";
+		}
+		wcout << endl;
+		wcout << "---------------------------" << endl;
 	}
 }
 
