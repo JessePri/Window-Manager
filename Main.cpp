@@ -12,7 +12,7 @@ using std::wcout;
 using std::endl;
 
 
-int main() {
+int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmdShow) {
 	Start::Initialize();
 	Start::StartManager();
 	return 0;
