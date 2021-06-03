@@ -150,9 +150,7 @@
     <ClInclude Include="AppManager.h" />
     <ClInclude Include="Application.h" />
     <ClInclude Include="Displays.h" />
-    <ClInclude Include="ProcessInfo.h" />
     <ClInclude Include="Start.h" />
-    <ClInclude Include="WinHWNDPrinter.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
