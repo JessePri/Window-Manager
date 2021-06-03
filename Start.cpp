@@ -7,7 +7,7 @@
 #include "Displays.h"
 #include "ProcessInfo.h"
 #include "AppManager.h"
-
+//#define DEBUG
 
 using std::wstring;
 using std::string;
@@ -32,9 +32,11 @@ void Start::StartManager() {
 		if (errorState == -1) {
 			return;
 		} else if (msg.message == WM_HOTKEY) {
+		#ifdef DEBUG
 			wcout << "HOT KEY PRESSED" << endl;
 			wcout << msg.wParam << endl;
 			wcout << "---------------------------------------------" << endl;
+		#endif
 
 			if (msg.wParam > 1000) {
 				AppManager::ClearProfiles();
@@ -80,12 +82,13 @@ void Start::ParseHotKeyFileToData(wifstream& fileStream) {
 
 		++count;
 	}
-
+#ifdef DEBUG
 	wcout << "------------------------------------------" << endl;
 	wcout << "id: " << hotkeyData.id << endl;
 	wcout << "modifiers: " << hotkeyData.modifiers << endl;
 	wcout << "virtual key: " << hotkeyData.virtualKey << endl;
 	wcout << "------------------------------------------" << endl;
+#endif
 
 	RegisterHotKeyFromData(hotkeyData);
 }

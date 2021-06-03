@@ -29,16 +29,16 @@ BOOL CALLBACK Displays::FindMonitor(HMONITOR h, HDC ignore1, LPRECT rect, LPARAM
 	MONITORINFO monitorInfo;
 	monitorInfo.cbSize = sizeof(monitorInfo);
 	GetMonitorInfo(h, &monitorInfo);
-
+#ifdef DEBUG
 	wcout << L"%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << endl;
 	wcout << monitorInfo.rcWork.left << endl;
 	wcout << monitorInfo.rcWork.right << endl;
 	wcout << monitorInfo.rcWork.top << endl;
 	wcout << monitorInfo.rcWork.bottom << endl;
 	wcout << L"%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << endl;
-
+#endif
 	displays.emplace_back(h, monitorInfo.rcWork);
-	//displays.emplace_back(h, *rect);
+
 	return true;
 }
 

@@ -24,6 +24,7 @@
     <ProjectGuid>{0d13d5ab-eef8-437e-9cdf-36290443e1c8}</ProjectGuid>
     <RootNamespace>PorjectTestCLI</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>WindowManager</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -142,10 +143,8 @@
     <ClCompile Include="AppManager.cpp" />
     <ClCompile Include="Application.cpp" />
     <ClCompile Include="Displays.cpp" />
-    <ClCompile Include="PorjectTestCLI.cpp" />
-    <ClCompile Include="ProcessInfo.cpp" />
+    <ClCompile Include="Main.cpp" />
     <ClCompile Include="Start.cpp" />
-    <ClCompile Include="WinHWNDPrinter.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AppManager.h" />
