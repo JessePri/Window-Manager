@@ -9,3 +9,4 @@ To clear all windows associated with the app press CTRL+ALT+c. **Additional docu
 * master -- Has the app run with a console window. Define DEBUG if you want to see some of the inner workings of the applicaiton.
 * Backup branches -- Not to be used.
 * Window-Manager -- The master branch but running without a console window. 
+For all branches run the app only in **Release x64**.
