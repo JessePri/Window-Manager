@@ -1,9 +1,7 @@
 #include <iostream>
 #include <string>
 #include <Windows.h>
-#include "WinHWNDPrinter.h"
 #include "Displays.h"
-#include "ProcessInfo.h"
 #include "AppManager.h"
 #include "Start.h"
 
