@@ -12,6 +12,7 @@
 #include <queue>
 #include <wchar.h>
 #include <list>
+//#define DEBUG
 
 
 using std::list;
@@ -39,7 +40,6 @@ AppManager::ModeMap AppManager::modes;
 AppManager::WinMap AppManager::windowedApps;
 wstring AppManager::currentMode;
 bool AppManager::firstLaunch = true;
-
 
 
 // Gets the state of the computer
@@ -85,7 +85,9 @@ BOOL AppManager::WindowUpdater(_In_ HWND hwnd, LPARAM) {
 		return true;
 	}
 
+#ifdef DEBUG
 	PrintLaunchUpdateMap();
+#endif
 
 	if (!app.IsStillValid()) {		// Solves an edge case where a window handle can be recycled
 		handlesUsed.erase(hwnd);
@@ -96,19 +98,21 @@ BOOL AppManager::WindowUpdater(_In_ HWND hwnd, LPARAM) {
 	}
 
 	if (!(handlesUsed.find(hwnd) == handlesUsed.end())) {	// Checks if the hwnd is still used in the application (might be redundant)
+	#ifdef DEBUG
 		wcout << "USED HANDLE" << endl;
 		app.PrintApplicaiton();
+	#endif
 		return true;
-	} 
+	}
 
 	if (launchUpdateIter != launchUpdateMap.end()) {
-		wcout << "HIT" << endl;
 		unsigned int index = *launchUpdateIter->second.begin();
 
 		if (iter == windowedApps.end()) {		// This if statement checks if the app is infact completely new app and a new type of app
-			wcout << "HIT 1" << endl;
+		#ifdef DEBUG
 			wcout << "launchUpdateIter->second.front(): " << index << endl;
 			app.PrintApplicaiton();
+		#endif
 			handlesUsed.emplace(hwnd);
 			unordered_map<unsigned int, Application> temp;
 			wstring key = app.GetWindowModulePath();
@@ -121,9 +125,10 @@ BOOL AppManager::WindowUpdater(_In_ HWND hwnd, LPARAM) {
 
 			windowedApps.emplace(key, std::move(temp));
 		} else {
-			wcout << "HIT 2" << endl;
+		#ifdef DEBUG
 			wcout << "index: " << index << endl;
 			app.PrintApplicaiton();
+		#endif
 			handlesUsed.emplace(hwnd);
 			wstring key = app.GetWindowModulePath();
 			iter->second.erase(index);
@@ -269,10 +274,12 @@ void AppManager::RunInstruction(const AppManager::Profile::MoveInstruction& inst
 	unordered_map<unsigned int, Application>::iterator appIter;
 
 	if (CheckValidInstruction(instruction, appIter)) {
+	#ifdef DEBUG
 		wcout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << endl;
 		wcout << instruction.ToString() << endl;
 		appIter->second.PrintApplicaiton();
 		wcout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << endl;
+	#endif
 		appIter->second.SetPosition
 		(instruction.x, instruction.y, instruction.cx, instruction.cy, SWP_ASYNCWINDOWPOS);
 	}
@@ -429,19 +436,13 @@ void AppManager::LaunchProfile(unsigned int index) {
 
 void AppManager::LaunchWindowFromMoveInstruction(const Profile::MoveInstruction& instruction) {
 	std::unordered_map<unsigned int, Application>::iterator iter;		// This variable does not have use in this context
-	wcout << "Instruction index: " << instruction.appIndex << endl;
+
 	auto launchUpdateIter = launchUpdateMap.find(instruction.filePath);
 
-	
-
-	if (CheckValidInstruction(instruction, iter)) {		// If the instruction is valid then you don't need ot do anything
-		wcout << "HOW?" << endl;
-		PrintLaunchUpdateMap();
+	if (CheckValidInstruction(instruction, iter)) {		// If the instruction is valid then you don't need to do anything
 		return;
-	} else if (launchUpdateIter != launchUpdateMap.end()	
+	} else if (launchUpdateIter != launchUpdateMap.end()
 		&& launchUpdateIter->second.find(instruction.appIndex) != launchUpdateIter->second.end()) {		// If the the window was launched already do nothing
-		wcout << "instruction.appIndex: " << instruction.appIndex << endl;
-		PrintLaunchUpdateMap();
 		return;
 	}
 
@@ -453,7 +454,6 @@ void AppManager::LaunchWindowFromMoveInstruction(const Profile::MoveInstruction&
 	ZeroMemory(&pi, sizeof(pi));
 
 	WCHAR* path = _wcsdup(instruction.filePathToLaunch.c_str());
-	WCHAR empty[1] = L"";
 
 	if (CreateProcess(0, path, 0, 0, 0, 0, 0, 0, &si, &pi)) {					// If the process is launched then add a app index into the update map 
 		wcout << "LAUNCHED" << endl;											// for it to be handles by the WindowUpdate function 
@@ -464,10 +464,11 @@ void AppManager::LaunchWindowFromMoveInstruction(const Profile::MoveInstruction&
 		} else {
 			launchUpdateIter->second.emplace(instruction.appIndex);
 		}
-		wcout << "WOWWW" << endl;
 	}
-
+#ifdef DEBUG
 	PrintLaunchUpdateMap();
+#endif 
+
 }
 
 void AppManager::PrintLaunchUpdateMap() {

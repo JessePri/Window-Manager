@@ -26,6 +26,7 @@ Application::Application(_In_ HWND winHandle) {
 	try {		
 		WINDOWINFO winfo;
 		GetWindowInfo(hwnd, &winfo);
+
 		x = winfo.rcWindow.left;
 		y = winfo.rcWindow.top;
 		width = (winfo.rcWindow.right - x);
@@ -97,10 +98,10 @@ const wstring& Application::GetWindowModulePath() const {
 
 void Application::SetPosition(int x, int y, int cx, int cy, UINT flags) {
 	try {	// NOTE: exception handlers here do nothing (keeping it just in case).
-		ShowWindow(hwnd, SW_SHOWNORMAL);	// So far both of these ShowWindow statements resolve buggyness
-		SetWindowPos(hwnd, HWND_TOP, x, y, cx, cy, SWP_SHOWWINDOW | SWP_ASYNCWINDOWPOS | SWP_DRAWFRAME);// needs to change
+		ShowWindow(hwnd, SW_SHOWNORMAL);	// Both of these ShowWindow statements resolve buggyness
+		SetWindowPos(hwnd, HWND_TOP, x, y, cx, cy, SWP_SHOWWINDOW | SWP_ASYNCWINDOWPOS | SWP_DRAWFRAME); 
 		SetForegroundWindow(hwnd);
-		ShowWindow(hwnd, SW_SHOW);	// This could be used for the hide function
+		ShowWindow(hwnd, SW_SHOW);	
 	} catch (exception e) {	
 	#ifdef APPLICATION_DEBUG
 		// Do some logging.
@@ -109,7 +110,6 @@ void Application::SetPosition(int x, int y, int cx, int cy, UINT flags) {
 		valid = false;
 		return;
 	}
-
 }
 
 void Application::MinimizeApplication() const {
