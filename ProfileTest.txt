@@ -2,19 +2,19 @@ Chrome
 Chrome
 4
 END
-C:\Program Files (x86)\Google\Chrome\Application\chrome.exe
+C:\Windows\explorer.exe
 0
-0
-3
-1
-1
 0
 2
 1
-C:\Program Files (x86)\Google\Chrome\Application\chrome.exe
 1
 0
-3
+1
+1
+C:\Windows\explorer.exe
+1
+0
+2
 1
 0
 0
