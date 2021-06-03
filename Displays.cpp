@@ -22,9 +22,6 @@ void Displays::Initialize() {
 	EnumDisplayMonitors(NULL, NULL, p, toIgnore);
 }
 
-// May of may not work properly
-// If it doesn't work properly with multip monitors we would need to use EnumDisplayDevices
-
 BOOL CALLBACK Displays::FindMonitor(HMONITOR h, HDC ignore1, LPRECT rect, LPARAM ignore2) {
 	MONITORINFO monitorInfo;
 	monitorInfo.cbSize = sizeof(monitorInfo);
