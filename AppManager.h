@@ -136,13 +136,13 @@ private:
 
 	static void LaunchWindowFromMoveInstruction(const Profile::MoveInstruction& instruction);
 
-	static WinMap windowedApps;														// Stores all of the applications
-	static std::unordered_set<HWND> handlesUsed;									// Stores all of the valid handles in use
-	static std::unordered_set<HWND> allHandles;										// Stores all handles of the machine after a call to a fucntion that updates it
-	static ModeMap modes;															// Stores all profiles associated with their modes
-	static MONITORINFO monitorInfo;													// Stores the info of a monitor
-	static std::wstring currentMode;
-	static LaunchUpdateMap launchUpdateMap;
-	static bool firstLaunch;
+	static WinMap windowedApps;												// Stores all of the applications
+	static std::unordered_set<HWND> handlesUsed;							// Stores all of the valid handles in use
+	static std::unordered_set<HWND> allHandles;								// Stores all handles of the machine after a call to a fucntion that updates it
+	static ModeMap modes;													// Stores all profiles associated with their modes
+	static MONITORINFO monitorInfo;											// Stores the info of a monitor
+	static std::wstring currentMode;										
+	static LaunchUpdateMap launchUpdateMap;									// Stores indices that need to be updated when the user launches apps
+	static bool firstLaunch;												// Used to determine when to call GetAllHandles() 
 };
 
