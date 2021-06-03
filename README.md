@@ -6,6 +6,7 @@ The controls are CTRL+ALT+1, CTRL+ALT+2, CTRL+ALT+3, and CTRL+ALT+4 for differen
 To launch each window set up you would do CTRL+SHFT+1 or some other number. After launching a set of windows, update them in to the application by pressing CTRL+ALT+0.
 To clear all windows associated with the app press CTRL+ALT+c. **Additional documentation coming soon**.
 ## Branches
-* master -- Has the app run with a console window. Define DEBUG if you want to see some of the inner workings of the applicaiton.
+* master -- Has the app run with a console window. Define DEBUG if you want to see some print statements tracing the code.
 * Backup branches -- Not to be used.
 * Window-Manager -- The master branch but running without a console window. 
+For all branches run the app only in **Release x64**.
