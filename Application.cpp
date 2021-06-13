@@ -97,11 +97,11 @@ const wstring& Application::GetWindowModulePath() const {
 }
 
 void Application::SetPosition(int x, int y, int cx, int cy, UINT flags) {
-	try {	// NOTE: exception handlers here do nothing (keeping it just in case).
-		ShowWindow(hwnd, SW_SHOWNORMAL);	// Both of these ShowWindow statements resolve buggyness
+	try {	// NOTE: exception handlers here do nothing (keeping it just in case)
+		ShowWindowAsync(hwnd, SW_SHOWNORMAL);	// Both of these ShowWindow statements resolve buggyness
 		SetWindowPos(hwnd, HWND_TOP, x, y, cx, cy, SWP_SHOWWINDOW | SWP_ASYNCWINDOWPOS | SWP_DRAWFRAME); 
 		SetForegroundWindow(hwnd);
-		ShowWindow(hwnd, SW_SHOW);	
+		ShowWindowAsync(hwnd, SW_SHOW);
 	} catch (exception e) {	
 	#ifdef APPLICATION_DEBUG
 		// Do some logging.
@@ -112,8 +112,8 @@ void Application::SetPosition(int x, int y, int cx, int cy, UINT flags) {
 	}
 }
 
-void Application::MinimizeApplication() const {
-	ShowWindow(hwnd, SW_MINIMIZE);
+void Application::MinimizeApplication() {
+	ShowWindowAsync(hwnd, SW_MINIMIZE);	
 }
 
 // We need to implement a hide all profiles function

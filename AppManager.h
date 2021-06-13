@@ -114,9 +114,9 @@ public:
 
 	static void ClearProfiles();
 
-
-
 	static void LaunchProfile(unsigned int index);
+	
+	static void AltTabProfile();
 
 private:
 	
@@ -143,6 +143,8 @@ private:
 	static MONITORINFO monitorInfo;											// Stores the info of a monitor
 	static std::wstring currentMode;										
 	static LaunchUpdateMap launchUpdateMap;									// Stores indices that need to be updated when the user launches apps
-	static bool firstLaunch;												// Used to determine when to call GetAllHandles() 
-};
+	static bool firstLaunch;												// Used to determine when to call GetAllHandles()
+	static unsigned int lastProfileIndex;
+	static bool cleared;													// Used by the AltTab function inorder to determine whether to run the profile or clear it
+};	
 

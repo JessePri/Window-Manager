@@ -53,7 +53,7 @@ public:
 	// Wrapper Method for SetWindowPos(...)
 	void SetPosition(int x, int y, int cx, int cy, UINT flags);
 
-	void MinimizeApplication() const;
+	void MinimizeApplication();
 
 	Application& operator=(Application&& app) noexcept;
 

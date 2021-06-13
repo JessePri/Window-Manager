@@ -5,7 +5,7 @@
 #include <Windows.h>
 #include "Displays.h"
 #include "AppManager.h"
-//#define DEBUG
+#define DEBUG
 
 using std::wstring;
 using std::string;
@@ -19,7 +19,7 @@ void Start::Initialize() {
 	Displays::Initialize();
 	AppManager::Initialize();
 	ParseHotKeyFile(L"HotkeyTest.txt");
-	wcout << (int)(MOD_NOREPEAT | MOD_CONTROL | MOD_SHIFT) << endl;
+	wcout << (int)(MOD_NOREPEAT | MOD_ALT) << endl;
 }
 
 void Start::StartManager() {
@@ -35,8 +35,9 @@ void Start::StartManager() {
 			wcout << msg.wParam << endl;
 			wcout << "---------------------------------------------" << endl;
 		#endif
-
-			if (msg.wParam > 1000) {
+			if (msg.wParam == 1001) {
+				AppManager::AltTabProfile();
+			} else if (msg.wParam == 1000) {
 				AppManager::ClearProfiles();
 			} else if (msg.wParam > 100) {
 				unsigned int profileIndex = msg.wParam - 101;
@@ -89,7 +90,7 @@ void Start::ParseHotKeyFileToData(wifstream& fileStream) {
 #endif
 
 	RegisterHotKeyFromData(hotkeyData);
-}
+	}
 
 void Start::RegisterHotKeyFromData(const HotkeyData& hotkeyData) {
 	RegisterHotKey(NULL, hotkeyData.id, hotkeyData.modifiers, hotkeyData.virtualKey);

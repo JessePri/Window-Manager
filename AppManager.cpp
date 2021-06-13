@@ -12,7 +12,7 @@
 #include <queue>
 #include <wchar.h>
 #include <list>
-//#define DEBUG
+#define DEBUG
 
 
 using std::list;
@@ -32,7 +32,7 @@ using std::pair;
 using std::unordered_set;
 using std::priority_queue;
 
-
+unsigned int AppManager::lastProfileIndex = -1;
 AppManager::LaunchUpdateMap AppManager::launchUpdateMap;
 unordered_set<HWND> AppManager::handlesUsed;
 unordered_set<HWND> AppManager::allHandles;
@@ -40,7 +40,7 @@ AppManager::ModeMap AppManager::modes;
 AppManager::WinMap AppManager::windowedApps;
 wstring AppManager::currentMode;
 bool AppManager::firstLaunch = true;
-
+bool AppManager::cleared = true;
 
 // Gets the state of the computer
 void AppManager::Initialize() {
@@ -261,12 +261,15 @@ void AppManager::RunProfile(unsigned int index) {
 	if (index >= modes[currentMode].size()) {
 		wcout << "Invalid Profile" << endl;
 		return;
-	}
+	} 
 
 	for (const AppManager::Profile::MoveInstruction& instruction : modes[currentMode][index].instructions) {
 		wcout << "Attempting to RunInstruction" << endl;
 		RunInstruction(instruction);
 	}
+
+	lastProfileIndex = index;
+	cleared = false;
 }
 
 void AppManager::RunInstruction(const AppManager::Profile::MoveInstruction& instruction) {
@@ -280,7 +283,7 @@ void AppManager::RunInstruction(const AppManager::Profile::MoveInstruction& inst
 		appIter->second.PrintApplicaiton();
 		wcout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << endl;
 	#endif
-		appIter->second.SetPosition
+		appIter->second.SetPosition					
 		(instruction.x, instruction.y, instruction.cx, instruction.cy, SWP_ASYNCWINDOWPOS);
 	}
 }
@@ -398,6 +401,8 @@ void AppManager::ClearProfile(const Profile& profile) {
 			appIter->second.MinimizeApplication();
 		}
 	}
+
+	cleared = true;
 }
 
 bool AppManager::CheckValidInstruction(const Profile::MoveInstruction& instruction, unordered_map<unsigned int, Application>::iterator& toReturn) {
@@ -468,7 +473,6 @@ void AppManager::LaunchWindowFromMoveInstruction(const Profile::MoveInstruction&
 #ifdef DEBUG
 	PrintLaunchUpdateMap();
 #endif 
-
 }
 
 void AppManager::PrintLaunchUpdateMap() {
@@ -480,6 +484,14 @@ void AppManager::PrintLaunchUpdateMap() {
 		}
 		wcout << endl;
 		wcout << "---------------------------" << endl;
+	}
+}
+
+void AppManager::AltTabProfile() {
+	if (cleared) {
+		RunProfile(lastProfileIndex);
+	} else if (lastProfileIndex != -1) {						// lastProfile index is invalid if it is -1 only. It can only be set by RunProfile
+		ClearProfile(modes[currentMode][lastProfileIndex]);		// which checks if it is valid already
 	}
 }
 
