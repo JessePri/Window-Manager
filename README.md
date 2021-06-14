@@ -1,4 +1,4 @@
-# Window-Manager-Backend
+# Window-Manager
 ## Functionality
 This is the back end, or the part without a GUI, to a window manager. However, it can be used without a front end. The manager currently has 4 sets of windows.
 ### Controls
