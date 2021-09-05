@@ -2,7 +2,7 @@
 ## Functionality
 This is a window manager that works based on hotkey input. It uses the Win32 API to find and control window handles. In the configuration files that are presents I have it set so that the first hotkey brings up two file managers in split window and the second and third ones bring up chrome windows. [**Link to youtube demo.**](https://youtu.be/kFFMxPCZ-r8)
 
-**IF THE APPLICATION DOES NOT WORK RECONFIGURE THE DIRECOTRIES IN THE PROFILE CONFIGURATION FILE**
+**IF THE APPLICATION DOES NOT WORK RECONFIGURE THE PATHS OF EACH APPLICATION TO YOUR MACHINE IN THE PROFILE CONFIGURATION FILE**
 
 ### Controls
 The controls are CTRL+ALT+1, CTRL+ALT+2,CTRL+ALT+3, and CTRL+ALT+4 for different window setups **If CTRL+ALT does not switch the applications displayed then try ALT**. 1 and 2 have file explorer windows while 3 and 4 are set of chrome windows. 
