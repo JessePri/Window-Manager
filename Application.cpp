@@ -17,13 +17,13 @@ using std::to_wstring;
 /* Things you will eventually need to fix (or not)
 *	- This doesn't really catch system exceptions you could
 *		1. Make part the code that reads and gets the proccess handle part of a
-*			__try __except with a helper fucntion to do the constructing 
-*		2. You could ignore this issue since EnumWindows is really fast so a user would have to run 
+*			__try __except with a helper fucntion to do the constructing
+*		2. You could ignore this issue since EnumWindows is really fast so a user would have to run
 *				the app then close a window imediatley for it to crash
 */
 Application::Application(_In_ HWND winHandle) {
 	hwnd = winHandle;
-	try {		
+	try {
 		WINDOWINFO winfo;
 		GetWindowInfo(hwnd, &winfo);
 
@@ -53,7 +53,7 @@ Application::Application(_In_ HWND winHandle) {
 	}
 }
 
-Application::Application(Application&& app) noexcept {	
+Application::Application(Application&& app) noexcept {
 	hwnd = app.hwnd;
 	x = std::move(app.x);
 	y = std::move(app.y);
@@ -99,10 +99,10 @@ const wstring& Application::GetWindowModulePath() const {
 void Application::SetPosition(int x, int y, int cx, int cy, UINT flags) {
 	try {	// NOTE: exception handlers here do nothing (keeping it just in case)
 		ShowWindowAsync(hwnd, SW_SHOWNORMAL);	// Both of these ShowWindow statements resolve buggyness
-		SetWindowPos(hwnd, HWND_TOP, x, y, cx, cy, SWP_SHOWWINDOW | SWP_ASYNCWINDOWPOS | SWP_DRAWFRAME); 
+		SetWindowPos(hwnd, HWND_TOP, x, y, cx, cy, SWP_SHOWWINDOW | SWP_ASYNCWINDOWPOS);
 		SetForegroundWindow(hwnd);
 		ShowWindowAsync(hwnd, SW_SHOW);
-	} catch (exception e) {	
+	} catch (exception e) {
 	#ifdef APPLICATION_DEBUG
 		// Do some logging.
 	#endif
@@ -113,7 +113,20 @@ void Application::SetPosition(int x, int y, int cx, int cy, UINT flags) {
 }
 
 void Application::MinimizeApplication() {
-	ShowWindowAsync(hwnd, SW_MINIMIZE);	
+	//ShowWindowAsync(hwnd, SW_MINIMIZE);
+	try {	// NOTE: exception handlers here do nothing (keeping it just in case)
+		ShowWindowAsync(hwnd, SW_SHOWNORMAL);	
+		SetWindowPos(hwnd, HWND_BOTTOM, 0, 0, 0, 0, 
+			SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_ASYNCWINDOWPOS);
+		ShowWindowAsync(hwnd, SW_SHOW);
+	} catch (exception e) {
+	#ifdef APPLICATION_DEBUG
+		// Do some logging.
+	#endif
+		cout << "ERROR" << endl;
+		valid = false;
+		return;
+	}
 }
 
 // We need to implement a hide all profiles function
@@ -163,7 +176,7 @@ bool Application::IsStillValid() {
 void Application::CheckValid() {
 	__try {
 		CheckValidHelper();
-	} __except (EXCEPTION_EXECUTE_HANDLER) 	{
+	} __except (EXCEPTION_EXECUTE_HANDLER) {
 		wcout << "Closed or bad Window" << endl;
 		valid = false;
 	}
