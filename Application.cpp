@@ -126,7 +126,7 @@ void Application::MinimizeApplication() {
 		cout << "ERROR" << endl;
 		valid = false;
 		return;
-	}
+	} 
 }
 
 // We need to implement a hide all profiles function
